@@ -1,0 +1,6 @@
+# Copy to local.properties for local builds. Do not commit local.properties.
+OPENAI_API_KEY=
+RELEASE_STORE_FILE=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_ALIAS=
+RELEASE_KEY_PASSWORD=

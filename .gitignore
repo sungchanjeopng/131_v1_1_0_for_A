@@ -1,0 +1,42 @@
+# Local / VCS metadata
+.git/
+.svn/
+.hermes/
+.omx/
+.omc/
+~$*
+*.bak*
+*.tmp
+*.__tmp
+
+# STM32CubeIDE / firmware build artifacts
+.metadata/
+Debug/
+Release/
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+*.o
+*.d
+*.su
+
+# Android local/build/signing artifacts
+local.properties
+*.jks
+*.keystore
+.gradle/
+.kotlin/
+build/
+.idea/
+*.iml
+*.apk
+*.aab
+# Agent/local backup/log artifacts excluded from public upload
+.hermes*/
+.codex
+.omx/
+.omc/
+*.log
+NUL
