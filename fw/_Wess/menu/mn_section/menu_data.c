@@ -14,6 +14,7 @@
 // bsp
 #include "bsp_ram.h"
 #include "bsp_uart.h"
+#include "bsp_usb.h"
 // app
 #include "app_main.h"
 // menu
@@ -25,6 +26,7 @@
 #include "menu_lyr4_addition.h"
 // self
 #include "menu_data.h"
+#include "disp_popup.h"
 // function
 #include "data_save.h"
 
@@ -54,6 +56,45 @@ void DatComPr_BaudInit(U08 val)
 	}
 }
 
+
+static void DatSave_ExportUsb(void)
+{
+	I08 filename[BspUsb_FILENAME_MAX] = {0, };
+	I08 msg[64] = {0, };
+	U08 ret;
+
+	DpPOP_DrwUsbExportMsg((I08*)"Exporting trend data...", (I08*)"Please wait");
+	ret = DaSAV_UsbExportCsv(filename, sizeof(filename));
+
+	switch(ret)
+	{
+		case BspUsb_FILE_OK:
+			DpPOP_DrwUsbExportMsg((I08*)"Saved to USB memory.", filename);
+			break;
+		case BspUsb_FILE_NO_USB:
+			DpPOP_DrwUsbExportMsg((I08*)"Insert USB memory.", (I08*)"No USB");
+			break;
+		case BspUsb_FILE_DISK_FULL:
+			DpPOP_DrwUsbExportMsg((I08*)"Insufficient disk space.", (I08*)"Check USB memory");
+			break;
+		case BspUsb_FILE_OPEN_FAIL:
+			DpPOP_DrwUsbExportMsg((I08*)"File open failed.", (I08*)"Format USB as FAT32");
+			break;
+		case BspUsb_FILE_WRITE_FAIL:
+			DpPOP_DrwUsbExportMsg((I08*)"File write failed.", (I08*)"Do not remove USB");
+			break;
+		case BspUsb_FILE_CLOSE_FAIL:
+			DpPOP_DrwUsbExportMsg((I08*)"File close failed.", (I08*)"Try again");
+			break;
+		default:
+			_SPRINTF(msg, "Error code: %u", ret);
+			DpPOP_DrwUsbExportMsg((I08*)"Export failed.", msg);
+			break;
+	}
+
+	HAL_Delay(1800);
+}
+
 //------------------------------------------------------------------------------------------------------------------------------
 //  Global APIs - Parameters - Get
 //------------------------------------------------------------------------------------------------------------------------------
@@ -64,6 +105,7 @@ S32 MnDAT_SavPrGet_Value(U08 iIt)
 	switch(iIt)
 	{
 		case MnDS0_OPT_INTERVAL:		val = lMnDat.mSavPr.intv;			break;
+		case MnDS0_OPT_EXPORT_USB:	val = 0;						break;
 		case MnDS0_OPT_DOWNLOAD:		val = MnDS0_DOWN_CH1_LIGHT;			break;
 		case MnDS0_OPT_DELETE:			val = MnDS0_DELETE_NO;				break;
 		case MnDS0_OPT_DISPLAY_TERM:	val = lMnDat.mSavPr.display_term;	break;
@@ -116,6 +158,10 @@ void MnDAT_SavPrSet_Value(U08 iIt, S32 val)
 				DaSAV_DeleteData();
 			lMnDat.mSavPr.intv 	 = val;			
 			MnLY3_GotoLyr2();			
+			break;
+		case MnDS0_OPT_EXPORT_USB:
+			DatSave_ExportUsb();
+			MnLY3_GotoLyr2();
 			break;
 		case MnDS0_OPT_DOWNLOAD:
 			DaSAV_DumpInit();

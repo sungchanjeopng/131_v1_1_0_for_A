@@ -31,7 +31,8 @@ enum {
 
 enum {
 	MnDS0_OPT_INTERVAL = 0,
-	MnDS0_OPT_DOWNLOAD,
+	MnDS0_OPT_EXPORT_USB,
+	MnDS0_OPT_DOWNLOAD,       // Export (RS485): legacy download path
 	MnDS0_OPT_DELETE,
 	MnDS0_OPT_DISPLAY_TERM,
 	// Number Max
@@ -170,6 +171,16 @@ enum {
 #define MnDS1_ASSIGN_MIN	(MnDS1_ASSIGN_LIGHT)
 #define MnDS1_ASSIGN_MAX	(MnDS1_ASSIGN_NUM-1)
 #define MnDS1_ASSIGN_DEF	(MnDS1_ASSIGN_HEAVY)
+
+#define MnDS2_OPT_TYPE              MnDS1_OPT_TYPE
+#define MnDS2_OPT_BAUD              MnDS1_OPT_BAUD
+#define MnDS2_OPT_ADDR              MnDS1_OPT_ADDR
+#define MnDS2_OPT_RF_CH1_ASSIGN     MnDS1_OPT_RF_CH1_ASSIGN
+#define MnDS2_OPT_RF_CH1_ADDRESS    MnDS1_OPT_RF_CH1_ADDRESS
+#define MnDS2_OPT_RF_CH2_ASSIGN     MnDS1_OPT_RF_CH2_ASSIGN
+#define MnDS2_OPT_RF_CH2_ADDRESS    MnDS1_OPT_RF_CH2_ADDRESS
+#define MnDS2_TYPE_MDB              MnDS1_TYPE_MDB
+#define MnDS2_TYPE_RF               MnDS1_TYPE_RF
 
 #if 0
 // Sub-Section List

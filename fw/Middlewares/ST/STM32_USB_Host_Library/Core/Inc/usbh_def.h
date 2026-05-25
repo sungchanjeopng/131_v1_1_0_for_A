@@ -177,6 +177,23 @@ extern "C" {
 #define  USB_EP_TYPE_BULK                                  0x02U
 #define  USB_EP_TYPE_INTR                                  0x03U
 
+/* Compatibility aliases for USB host core sources that use LL endpoint names. */
+#ifndef EP_TYPE_CTRL
+#define  EP_TYPE_CTRL                                      USB_EP_TYPE_CTRL
+#endif
+#ifndef EP_TYPE_ISOC
+#define  EP_TYPE_ISOC                                      USB_EP_TYPE_ISOC
+#endif
+#ifndef EP_TYPE_BULK
+#define  EP_TYPE_BULK                                      USB_EP_TYPE_BULK
+#endif
+#ifndef EP_TYPE_INTR
+#define  EP_TYPE_INTR                                      USB_EP_TYPE_INTR
+#endif
+#ifndef EP_TYPE_MSK
+#define  EP_TYPE_MSK                                       0x03U
+#endif
+
 #define  USB_EP_DIR_OUT                                    0x00U
 #define  USB_EP_DIR_IN                                     0x80U
 #define  USB_EP_DIR_MSK                                    0x80U

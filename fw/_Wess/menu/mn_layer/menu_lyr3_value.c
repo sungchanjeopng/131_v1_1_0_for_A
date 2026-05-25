@@ -296,6 +296,9 @@ void MnL3Itr_Sc3Syst(U08 iSb, U08 iIt)
 					case MnSYS_OPT_FTR_RST: 		
 						lMnLy3.val = MENU_CHK_NO;				
 						break;
+					case MnSYS_OPT_FW_UPDATE_USB:
+						lMnLy3.val = 0;
+						break;
 					// Not Yet
 					default:						
 						lMnLy3.val = MENU_VAL_INVALID;			
@@ -359,6 +362,9 @@ void MnL3Itr_Sc3Syst(U08 iSb, U08 iIt)
 						break;
 					case MnSYS_OPT_SINGLE_FTR_RST: 		
 						lMnLy3.val = MENU_CHK_NO;				
+						break;
+					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:
+						lMnLy3.val = 0;
 						break;
 					// Not Yet
 					default:						
@@ -645,6 +651,7 @@ void MnL2Val_Sc2Data(U08 iSb, U08 iIt, U08 key)
 			switch(iIt)
 			{
 				case MnDS0_OPT_INTERVAL:			MnL3Val_UpDn(key, MnDS0_INTV_MIN, MnDS0_INTV_MAX);			break;
+				case MnDS0_OPT_EXPORT_USB:		break;
 				case MnDS0_OPT_DOWNLOAD:		
 					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)	
 						MnL3Val_UpDn(key, MnDS0_DOWN_MIN, MnDS0_DOWN_MAX);		
@@ -813,6 +820,7 @@ void MnL2Val_Sc3Syst(U08 sub, U08 iIt, U08 key)
 						}
 						break;
 					case MnSYS_OPT_FTR_RST: 		lMnLy3.val ^= 1;						break;
+					case MnSYS_OPT_FW_UPDATE_USB:	break;
 					// Not Yet
 					default:						lMnLy3.val = MENU_VAL_INVALID; 			break;
 				}
@@ -948,6 +956,7 @@ void MnL2Val_Sc3Syst(U08 sub, U08 iIt, U08 key)
 						}
 						break;
 					case MnSYS_OPT_SINGLE_FTR_RST: 		lMnLy3.val ^= 1;						break;
+					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	break;
 					// Not Yet
 					default:						lMnLy3.val = MENU_VAL_INVALID;			break;
 				}
@@ -1344,6 +1353,10 @@ void MnLy2Act_EnterSys(void)
 					case MnSYS_OPT_CH2_SITE_NAME:	
 						MnSYS_PrSetBase_Value(iIt,lMnLy3.val);	
 						break;
+					case MnSYS_OPT_FW_UPDATE_USB:
+						MnSYS_PrSetBase_Value(iIt,lMnLy3.val);
+						MnLY3_GotoLyr2();
+						break;
 					default:						MnLY3_GotoLyr2();				break;
 				}
 				break;
@@ -1382,6 +1395,10 @@ void MnLy2Act_EnterSys(void)
 					case MnSYS_OPT_SINGLE_SITE_NAME:
 						MnSYS_PrSetBase_Ch_Value(iIt,lMnLy3.val);	
 						DpTTB_UdtIntro(TEXT_LIST_MENU, 330, _cTTB_ST_TITLE);
+						break;
+					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:
+						MnSYS_PrSetBase_Ch_Value(iIt,lMnLy3.val);
+						MnLY3_GotoLyr2();
 						break;
 					default:						MnLY3_GotoLyr2();				break;
 				}
@@ -1779,7 +1796,7 @@ void MnLY3_GotoLyr2(void)
 		case MENU_SC0_MEAS:
 		case MENU_SC1_OUTP:
 		case MENU_SC2_DATA:
-		case MENU_SC3_SYST:			DpM1_IntroSub();				break;
+		case MENU_SC3_SYST:			break;
 		case MENU_SC4_EGNR:
 		case MENU_SC5_FCTR:
 		case MENU_SC6_TEST:

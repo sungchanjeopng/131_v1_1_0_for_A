@@ -13,6 +13,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // bsp
 #include "bsp_ram.h"
+#include "bsp_ota.h"
 // app
 #include "app_main.h"
 // menu
@@ -23,6 +24,7 @@
 #include "menu_lyr3_value.h"
 #include "menu_lyr4_addition.h"
 #include "disp_string.h"
+#include "disp_popup.h"
 // self
 #include "menu_system.h"
 
@@ -42,6 +44,21 @@ MnSYS_LS lMnSys;
 //  Local Funtions
 //------------------------------------------------------------------------------------------------------------------------------
 
+
+static void MnSYS_FirmwareUpdateUsb(void)
+{
+	U16 ret;
+
+	DpPOP_DrwOtaStart();
+	DpPOP_DrwOtaStatus((I08*)"Reading c1d-330.bin");
+	ret = ota_usb_program_file((I08*)"c1d-330.bin");
+	DpPOP_DrwOtaResult(ret);
+	HAL_Delay(1500);
+	DpPOP_DrwOtaEnd();
+
+	if(ret == OTA_RESULT_OK)
+		__NVIC_SystemReset();
+}
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Global APIs - Parameters - Get
@@ -63,7 +80,8 @@ S32 MnSYS_PrGetBase_Item(U08 itm)
 		case MnSYS_OPT_RTN_TIM:			return lMnSys.mPr.rtn_tim;
 		case MnSYS_OPT_CH1_SITE_NAME:
 		case MnSYS_OPT_CH2_SITE_NAME:	break;
-		case MnSYS_OPT_FTR_RST:			break;	
+		case MnSYS_OPT_FTR_RST:
+		case MnSYS_OPT_FW_UPDATE_USB:	break;	
 		default:						break;
 	}
 
@@ -79,7 +97,8 @@ S32 MnSYS_PrGetBase_Ch_Item(U08 itm)
 		case MnSYS_OPT_SINGLE_TIME:			break;
 		case MnSYS_OPT_SINGLE_RTN_TIM:		return lMnSys.mPr.rtn_tim;
 		case MnSYS_OPT_SINGLE_SITE_NAME:
-		case MnSYS_OPT_SINGLE_FTR_RST:		break;	
+		case MnSYS_OPT_SINGLE_FTR_RST:
+		case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	break;	
 		default:							break;
 	}
 
@@ -118,6 +137,7 @@ void MnSYS_PrSetBase_Value(U08 iIt,S32 val)
 		case MnSYS_OPT_RTN_TIM:			lMnSys.mPr.rtn_tim = val;		break;
 		case MnSYS_OPT_CH1_SITE_NAME:	lMnSys.mPr.site_name[APP_CH_1] =  val;	break;
 		case MnSYS_OPT_CH2_SITE_NAME:	lMnSys.mPr.site_name[APP_CH_2] =  val;	break;			
+		case MnSYS_OPT_FW_UPDATE_USB:	MnSYS_FirmwareUpdateUsb();			break;
 		default:
 			break;
 	}
@@ -142,6 +162,7 @@ void MnSYS_PrSetBase_Ch_Value(U08 iIt,S32 val)
 		case MnSYS_OPT_SINGLE_TIME:			break;
 		case MnSYS_OPT_SINGLE_RTN_TIM:			lMnSys.mPr.rtn_tim = val;		break;
 		case MnSYS_OPT_SINGLE_SITE_NAME:	lMnSys.mPr.site_name[APP_CH_1] =  val;	break;		
+		case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	MnSYS_FirmwareUpdateUsb();		break;
 		default:
 			break;
 	}

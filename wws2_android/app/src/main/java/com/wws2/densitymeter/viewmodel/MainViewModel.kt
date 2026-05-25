@@ -59,6 +59,8 @@ data class MainUiState(
     val freqMHz: Double = 0.0,
     val tvg: Int = 0,
     val offset: Double = 0.0,
+    val emptyDistance: Double = 0.0,
+    val deadZone: Double = 0.0,
     val asf: Int = 0,
     val relay: Int = 0,
     val densUnit: Int = 0,
@@ -287,6 +289,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openCalib() {
         _state.update { it.copy(tabIndex = 4, subPage = "calib") }
+    }
+
+    private fun appSettingCmd(baseCmd: Int): Int {
+        return if (_state.value.activeDeviceId.endsWith("_CH2")) baseCmd + 1000 else baseCmd
+    }
+
+    fun sendAppSetting(baseCmd: Int, value: Int) {
+        val proto = activeProtocol
+        if (proto == null) {
+            _snackbarMessage.tryEmit("No active device.")
+            return
+        }
+        viewModelScope.launch {
+            val cmd = appSettingCmd(baseCmd)
+            val ok = proto.write(proto.buildSettingFrame(cmd, value), withoutResponse = false)
+            _snackbarMessage.tryEmit(if (ok) "Setting sent." else "Setting failed.")
+        }
     }
 
     // ?????? BLE Pairing ??????
@@ -807,7 +826,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // 확장 데이터를 기존 핸들러 호환 크기로 정규화 (계면계/Diag만 — 농도계 Status/Echo는 전체 수신)
             val isIf = _state.value.deviceType == DeviceType.INTERFACE
             val normSize = when {
-                (parsed.cmd == 0x0000 || parsed.cmd == 0x0010) && isIf && parsed.data.size > 26 -> 26
                 (parsed.cmd == 0x0004 || parsed.cmd == 0x0014) && parsed.data.size > 22 ->
                     if (isIf) 22 else 16
                 else -> -1
@@ -831,7 +849,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         errorCode = errorCode,
                     )
                     _state.update { st -> st.copy(deviceReadings = st.deviceReadings + (deviceId to reading)) }
-                } else if (parsed.data.size == 26) {
+                } else if (_state.value.deviceType == DeviceType.INTERFACE && parsed.data.size >= 26) {
                     val buf = java.nio.ByteBuffer.wrap(parsed.data).order(java.nio.ByteOrder.BIG_ENDIAN)
                     val light = (buf.short.toInt() and 0xFFFF).toDouble()
                     val heavy = (buf.short.toInt() and 0xFFFF).toDouble()
@@ -848,6 +866,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val asf = buf.short.toInt() and 0xFFFF
                     val relay = buf.short.toInt() and 0xFFFF
                     val errorCode = buf.short.toInt() and 0xFFFF
+                    val echoAmpReserved = if (parsed.data.size >= 28) buf.short.toInt() and 0xFFFF else 0
+                    val emptyDistance = if (parsed.data.size >= 30) (buf.short.toInt() and 0xFFFF) * 0.01 else _state.value.emptyDistance
+                    val deadZone = if (parsed.data.size >= 32) (buf.short.toInt() and 0xFFFF) * 0.01 else _state.value.deadZone
                     val reading = DeviceReading(
                         level = light, heavyLevel = heavy,
                         temperature = temperature, currentMA = currentMA,
@@ -865,6 +886,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             freqMHz = freq * 0.001,
                             tvg = tvg,
                             offset = offset * 0.01,
+                            emptyDistance = emptyDistance,
+                            deadZone = deadZone,
                             asf = asf,
                             relay = relay,
                         )

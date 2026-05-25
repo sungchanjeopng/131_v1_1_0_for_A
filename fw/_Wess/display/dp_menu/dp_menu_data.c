@@ -68,7 +68,8 @@ void DpDatSav_PopIntro(void)
 			switch(iIt)
 			{
 				case MnDS0_OPT_INTERVAL:			_SPRINTF(pSt0, _sSAV_Intv);			break;
-				case MnDS0_OPT_DOWNLOAD:			_SPRINTF(pSt0, _sSAV_Down);			break;
+				case MnDS0_OPT_EXPORT_USB:		_SPRINTF(pSt0, "Export (USB)");		break;
+				case MnDS0_OPT_DOWNLOAD:			_SPRINTF(pSt0, "Export (RS485)");	break;
 				case MnDS0_OPT_DELETE:				_SPRINTF(pSt0, _sSAV_Del);			break;
 				case MnDS0_OPT_DISPLAY_TERM:		_SPRINTF(pSt0, _sDisplay_term);		break;
 				default:							_SPRINTF(pSt0, _sNG);				break;
@@ -92,6 +93,7 @@ void DpDatSav_PopIntro(void)
 				default:					_SPRINTF(pSt0, _sNG);						break;
 			}
 			break;
+		case MnDS0_OPT_EXPORT_USB:			fDp = _F_F;									break;
 		case MnDS0_OPT_DOWNLOAD:			_SPRINTF(pSt0, "%d", (U16)DaSav_GetCnt());	break;
 		case MnDS0_OPT_DELETE:				fDp = _F_F;									break;
 		case MnDS0_OPT_DISPLAY_TERM:	
@@ -254,6 +256,9 @@ void DpDatSav_PopUpdat(void)
 				case MnDS0_INTV_01H:		_SPRINTF(pSt0, _sTim_1Hrs);					break;
 				default:					_SPRINTF(pSt0, _sNG);						break;
 			}
+			break;
+		case MnDS0_OPT_EXPORT_USB:
+			_SPRINTF(pSt0, "Press ENTER");
 			break;
 		case MnDS0_OPT_DOWNLOAD:
 			if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
@@ -671,10 +676,6 @@ void DpDAT_AddUpdat(void)
 	U32 cBg = _cPOP_BG_WND;
 	I08 pSt0[16] = {0, };
 
-	U08 iIt = MnLY2_GetIdxItem();
-
-
-	
 	DpFIG_DrwRect(DpPOP_CT1_X0-5,	DpPOP_CT2_Y0, 200, 40, _cPOP_BG_WND, DpFIG_FILL);		// Clear
 	_SPRINTF(pSt0, "Loading...");	
 	//_SPRINTF(pSt0, "%d %%", MnLy4_GetPercent());	
@@ -798,8 +799,8 @@ void DpDAT_InitVari(void)
 			// Item (S0 - Save)
 			DpSTR_GuiList(TEXT_LIST_INTV);
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_INTERVAL], 	 	gDpStr.Text_list);
-			DpSTR_GuiList(TEXT_LIST_DOWNLOAD);
-			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], 	 	gDpStr.Text_list);
+			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_EXPORT_USB], 	"Export (USB)");
+			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], 	 	"Export (RS485)");
 			DpSTR_GuiList(TEXT_LIST_DELETE);
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DELETE],  	 	gDpStr.Text_list);
 			DpSTR_GuiList(TEXT_LIST_DISPLAY_TERM);
@@ -841,7 +842,8 @@ void DpDAT_InitVari(void)
 			_SPRINTF(lDpDat.sSct[MnDAT_SUB_COMM], 	 _sCmnctn);
 			// Item (S0 - Save)
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_INTERVAL], 	 	_sSAV_Intv);
-			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], 	 	_sSAV_Down);
+			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_EXPORT_USB], 	"Export (USB)");
+			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], 	 	"Export (RS485)");
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DELETE],  	 	_sSAV_Del);
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DISPLAY_TERM],  	_sDisplay_term);
 			// Item (S1 - Communication)
@@ -924,6 +926,7 @@ void DpDAT_InitVari(void)
 			break;
 	}
 	
+	_SPRINTF(lDpDat.sVl0[MnDS0_OPT_EXPORT_USB], 	"-");
 	_SPRINTF(lDpDat.sVl0[MnDS0_OPT_DOWNLOAD], 	"-");
 	_SPRINTF(lDpDat.sVl0[MnDS0_OPT_DELETE], 	"-");
 	// Value (S1 - Communication)
@@ -1023,7 +1026,7 @@ void DpDT1_StrSbSct(void)
 
 void DpDAT_StrCntts(U08 idx)
 {
-	U08 i, n;
+	U08 i, n = 0;
 	I08 *pItm, *pVal;
 	U16 box_itm_x0 = DpMNU_STR_X0_ITM;
 	U16 box_val_x0 = DpMNU_STR_X0_VAL;

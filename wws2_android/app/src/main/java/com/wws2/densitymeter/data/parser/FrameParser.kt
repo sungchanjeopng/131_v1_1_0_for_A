@@ -45,6 +45,8 @@ object FrameParser {
             val offset: Double,
             val asf: Int,
             val relay: Int,
+            val emptyDistance: Double = 0.0,
+            val deadZone: Double = 0.0,
             val trendRecord: TrendRecord,
         ) : ParseResult()
 
@@ -108,7 +110,7 @@ object FrameParser {
         return when (data.size) {
             4 -> parseStatus4B(data)
             34 -> parseDensityStatus34B(data)
-            26 -> parseInterfaceStatus26B(data)
+            26, 28, 30, 32, 200 -> parseInterfaceStatus26B(data)
             else -> null
         }
     }
@@ -179,6 +181,9 @@ object FrameParser {
         val asf = buf.short.toInt() and 0xFFFF
         val relay = buf.short.toInt() and 0xFFFF
         val errorCode = buf.short.toInt() and 0xFFFF
+        val echoAmpReserved = if (data.size >= 28) buf.short.toInt() and 0xFFFF else 0
+        val emptyDistance = if (data.size >= 30) (buf.short.toInt() and 0xFFFF) * 0.01 else 0.0
+        val deadZone = if (data.size >= 32) (buf.short.toInt() and 0xFFFF) * 0.01 else 0.0
 
         val reading = DeviceReading(
             level = light, heavyLevel = heavy,
@@ -197,6 +202,7 @@ object FrameParser {
             temperature = temperature, currentMA = currentMA, damping = damping,
             set4mA = set4mA, set20mA = set20mA, freqMHz = freq * 0.001,
             tvg = tvg, offset = offset * 0.01, asf = asf, relay = relay,
+            emptyDistance = emptyDistance, deadZone = deadZone,
             trendRecord = trendRecord,
         )
     }

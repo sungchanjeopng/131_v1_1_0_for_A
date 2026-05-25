@@ -32,12 +32,14 @@
 //  Type definitions
 //--------------------------------------------------------------------------------------------------
 typedef enum {
-    URT_IDX_1 = 0,	// Only RS232, Debug Port
+    URT_IDX_1 = 0,	// BLE BoT-nLE521 (USART2)
 	URT_IDX_2,		// Only RS485, Output Port
 	URT_IDX_RF,
 
     URT_IDX_MAX,
 }URT_IDX;
+
+#define URT_IDX_BT      URT_IDX_1
 
 typedef struct
 {

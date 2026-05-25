@@ -148,9 +148,9 @@ void MnLy2Evt_KeyFunc(void)
 	{
 		case MENU_SC0_MEAS:
 		case MENU_SC1_OUTP:
-		case MENU_SC2_DATA:
-		// Not Use L1
-		case MENU_SC3_SYST:		MENU_SetLayer(MENU_L1_SUB_SCT);		break;
+		case MENU_SC2_DATA:		MENU_SetLayer(MENU_L1_SUB_SCT);		break;
+		// System has no L1 Base/Alarm selection. Return directly to L0.
+		case MENU_SC3_SYST:		MENU_SetLayer(MENU_L0_SECTION);		break;
 		case MENU_SC4_EGNR:
 		case MENU_SC5_FCTR:
 		case MENU_SC6_TEST:
@@ -341,13 +341,7 @@ void MnLY2_InitItem(void)
 						break;
 				}
 				break;
-			case MENU_SC3_SYST:
-				switch(MnLY1_GetSection())
-				{
-					case MnSYS_SUB_BASE:		lMnLy2.min = MnSY0_OPT_MIN; 	lMnLy2.max = MnSY0_OPT_NUM; 	break;
-					case MnSYS_SUB_ALARM:		lMnLy2.min = MnSY1_OPT_MIN; 	lMnLy2.max = MnSY1_OPT_NUM; 	break;
-				}
-				break;
+			case MENU_SC3_SYST:				lMnLy2.min = MnSY0_OPT_MIN; 	lMnLy2.max = MnSY0_OPT_NUM; 	break;
 			case MENU_SC4_EGNR:					lMnLy2.min = MnEGN_OPT_MIN;		lMnLy2.max = MnEGN_OPT_NUM;		break;
 			case MENU_SC5_FCTR:					lMnLy2.min = MnFTR_ITM_I00;		lMnLy2.max = MnFTR_ITM_NUM;		break;
 			case MENU_SC6_TEST:					lMnLy2.min = MnTST_OPT_MIN;		lMnLy2.max = MnTST_OPT_NUM;		break;
@@ -391,13 +385,7 @@ void MnLY2_InitItem(void)
 						break;
 				}
 				break;
-			case MENU_SC3_SYST:
-				switch(MnLY1_GetSection())
-				{
-					case MnSYS_SUB_BASE:		lMnLy2.min = MnSY0_OPT_SINGLE_MIN; 	lMnLy2.max = MnSY0_OPT_SINGLE_NUM; 	break;
-					case MnSYS_SUB_ALARM:		lMnLy2.min = MnSY1_OPT_MIN; 		lMnLy2.max = MnSY1_OPT_NUM; 		break;
-				}
-				break;
+			case MENU_SC3_SYST:				lMnLy2.min = MnSY0_OPT_SINGLE_MIN; 	lMnLy2.max = MnSY0_OPT_SINGLE_NUM; 	break;
 			case MENU_SC4_EGNR: 				lMnLy2.min = MnEGN_OPT_MIN; 		lMnLy2.max = MnEGN_OPT_NUM; 		break;
 			case MENU_SC5_FCTR: 				lMnLy2.min = MnFTR_OPT_SINGLE_MIN; 	lMnLy2.max = MnFTR_OPT_SINGLE_NUM; 		break;
 			case MENU_SC6_TEST: 				lMnLy2.min = MnTST_OPT_MIN; 		lMnLy2.max = MnTST_OPT_NUM; 		break;

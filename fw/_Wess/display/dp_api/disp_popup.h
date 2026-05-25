@@ -101,6 +101,7 @@ extern void DpPOP_DrwIntro(void);
 extern void DpPOP_DrwDLoadStart(void);
 extern void DpPOP_DrwDLoadProgress(U16 done, U16 total);
 extern void DpPOP_DrwDLoadEnd(void);
+extern void DpPOP_DrwUsbExportMsg(const I08 *line1, const I08 *line2);
 extern void DpPOP_DrwOtaStart(void);
 extern void DpPOP_DrwOtaProgress(U32 rxBytes, U32 totalBytes);
 extern void DpPOP_DrwOtaStatus(const I08 *msg);

@@ -153,6 +153,16 @@ class BleProtocolService(private val context: Context) {
         return payload + byteArrayOf((crc and 0xFF).toByte(), ((crc shr 8) and 0xFF).toByte())
     }
 
+    fun buildSettingFrame(cmd: Int, data: Int): ByteArray {
+        val sof = byteArrayOf(0x03)
+        val cmdBytes = byteArrayOf(((cmd shr 8) and 0xFF).toByte(), (cmd and 0xFF).toByte())
+        val data16 = data and 0xFFFF
+        val dataBytes = byteArrayOf(((data16 shr 8) and 0xFF).toByte(), (data16 and 0xFF).toByte())
+        val payload = sof + cmdBytes + dataBytes
+        val crc = crc16Modbus(payload)
+        return payload + byteArrayOf((crc and 0xFF).toByte(), ((crc shr 8) and 0xFF).toByte())
+    }
+
     fun parseFrame(raw: ByteArray): ParsedFrame? {
         if (raw.size < 5) return null
         if (raw[0] != 0x02.toByte()) return null

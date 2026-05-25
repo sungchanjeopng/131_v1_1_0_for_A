@@ -361,7 +361,7 @@ void DaMdb_SetLevel(U08 idx,U16 addr)
 	lmdb.value_buf[21] = (S08)((MsTPR_GetTprt(APP_CH_2)>>0) & 0x00ff);
 
 
-	buff[MDB_TX_00_SLAVE] = MnDAT_ComPrGet_Value(MnDS1_OPT_ADDR); 	
+	buff[MDB_TX_00_SLAVE] = MnDAT_ComPrGet_Value(MnDS2_OPT_ADDR); 	
 	buff[MDB_TX_01_CMD] = lmdb.rx_buf[idx][MDB_RX_01_CMD];
 	buff[MDB_TX_02_SIZE] = lmdb.rx_buf[idx][MDB_RX_05_SIZE] * 2; 
 	
@@ -382,7 +382,7 @@ void DaMdb_SetLevel(U08 idx,U16 addr)
 	
 
 
-	DatComPr_BaudInit(MnDAT_ComPrGet_Value(MnDS1_OPT_BAUD));
+	DatComPr_BaudInit(MnDAT_ComPrGet_Value(MnDS2_OPT_BAUD));
 
 
 	URT_TxPkt(idx, buff, cnt+2);
@@ -416,7 +416,7 @@ void DaMdb_SetTmprt(U08 addr)
 	lmdb.tx_tmprt[6] = 0x00;
 
 
-	buff[MDB_TX_00_SLAVE] = MnDAT_ComPrGet_Value(MnDS1_OPT_ADDR); 	
+	buff[MDB_TX_00_SLAVE] = MnDAT_ComPrGet_Value(MnDS2_OPT_ADDR); 	
 	buff[MDB_TX_01_CMD] = lmdb.rx_buf[URT_IDX_2][MDB_RX_01_CMD];
 	buff[MDB_TX_02_SIZE] = lmdb.rx_buf[URT_IDX_2][MDB_RX_05_SIZE] * 2;
 
@@ -664,7 +664,7 @@ void DaBT_SetRxBuff(URT_IDX idx, U08 dr)
 		ota_on_rx_byte(dr);
 		return;
 	}
-	else if(idx == URT_IDX_1 && interrupt_cnt[idx] == 0)
+	else if(idx == URT_IDX_BT && interrupt_cnt[idx] == 0)
 	{
 		if(bt_ascii_cnt > 0 && bt_ascii_buf[0] == '+')
 		{
@@ -695,7 +695,7 @@ void DaBT_SetRxBuff(URT_IDX idx, U08 dr)
 
 	if(interrupt_cnt[idx] == 0)
 	{
-		if(dr == 0x02)
+		if(dr == 0x02 || dr == 0x03)
 		{
 			lmdb.interrupt_buf[idx][0] = dr;
 			interrupt_cnt[idx] = 1;
@@ -746,6 +746,7 @@ void DaBT_SendStatus_Ch(U08 ch)
 	U16 asf     = MsCAL_GetVl_ASF_R(ch);
 	U08 relay   = gRly_state;
 	U16 err = (U16)BLE_GetErrorCode(ch);
+	U16 echoAmp = (U16)MnMSR_CalGet_Ch_Value(ch, MnMS1_OPT_SINGLE_ECHO_AMP);
 	U08 cmd_lo = (ch == APP_CH_1) ? 0x00 : 0x10;
 
 	buff[buff_cnt++] = 0x02;
@@ -778,15 +779,18 @@ void DaBT_SendStatus_Ch(U08 ch)
 	buff[buff_cnt++] = relay;
 	buff[buff_cnt++] = (U08)((err >> 8) & 0xFF);
 	buff[buff_cnt++] = (U08)(err & 0xFF);
-	// buff_cnt = 29 here. DATA payload extended to 200B; remaining 174B stay 0x00 (reserved).
+	// Echo Amp/FAMP 수신감도: append at reserved offset 26~27 to keep existing 26B layout compatible.
+	buff[buff_cnt++] = (U08)((echoAmp >> 8) & 0xFF);
+	buff[buff_cnt++] = (U08)(echoAmp & 0xFF);
+	// buff_cnt = 31 here. DATA payload extended to 200B; remaining 172B stay 0x00 (reserved).
 
-	buff_cnt = 1 + 2 + 200;  // jump to end of DATA (203). Bytes 29..202 already 0 from init.
+	buff_cnt = 1 + 2 + 200;  // jump to end of DATA (203). Bytes 31..202 already 0 from init.
 
 	tx_crc = Mdb_GetCrc16(buff, buff_cnt);
 	buff[buff_cnt++] = (U08)(tx_crc & 0xFF);
 	buff[buff_cnt++] = (U08)((tx_crc >> 8) & 0xFF);
 
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);  // 205B total
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);  // 205B total
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -843,7 +847,7 @@ void DaBT_SendDiag_Ch(U08 ch)
 	buff[buff_cnt++] = (U08)(tx_crc & 0xFF);
 	buff[buff_cnt++] = (U08)((tx_crc >> 8) & 0xFF);
 
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -954,7 +958,7 @@ void DaBT_SendWaveform_Ch(U08 ch)
 	crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
 
 	// ?? Send header: 31B ??35B(7횞5) ?⑤뵫 ??
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 	HAL_Delay(10);
 
 	// ?? ? 泥?겕: 98?섑뵆??(196B = 7횞28, ?⑤뵫 遺덊븘?? ??
@@ -969,7 +973,7 @@ void DaBT_SendWaveform_Ch(U08 ch)
 			buff[buff_cnt++] = (U08)(val & 0xFF);
 		}
 		crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
-		URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+		URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 		HAL_Delay(10);
 	}
 
@@ -984,7 +988,7 @@ void DaBT_SendWaveform_Ch(U08 ch)
 	crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
 	buff[buff_cnt++] = (U08)(crc & 0xFF);
 	buff[buff_cnt++] = (U08)((crc >> 8) & 0xFF);
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 }
 
 void DaBT_SendWaveformAvg_Ch(U08 ch)
@@ -1070,7 +1074,7 @@ void DaBT_SendWaveformAvg_Ch(U08 ch)
 	crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
 
 	// Send header: 203B
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 	HAL_Delay(10);
 
 	// ?? ? 泥?겕: 98?섑뵆??(196B = 7횞28, ?⑤뵫 遺덊븘?? ??
@@ -1085,7 +1089,7 @@ void DaBT_SendWaveformAvg_Ch(U08 ch)
 			buff[buff_cnt++] = (U08)(val & 0xFF);
 		}
 		crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
-		URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+		URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 		HAL_Delay(10);
 	}
 
@@ -1100,7 +1104,7 @@ void DaBT_SendWaveformAvg_Ch(U08 ch)
 	crc = Crc16_UpdateBuf(crc, buff, buff_cnt);
 	buff[buff_cnt++] = (U08)(crc & 0xFF);
 	buff[buff_cnt++] = (U08)((crc >> 8) & 0xFF);
-	URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+	URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 }
 // ?꾩껜 ?몃젋???ㅼ슫濡쒕뱶 (理쒕? 10000媛? CMD=0x07/0x17) ??21?덉퐫??231B)?? ?꾩쟻CRC 7B
 void DaBT_SendTrendFull_Ch(U08 ch)
@@ -1125,7 +1129,7 @@ void DaBT_SendTrendFull_Ch(U08 ch)
 	hdr[4] = (U08)(total_cnt & 0xFF);
 	{ U16 hc = Mdb_GetCrc16(hdr, 5); hdr[5] = (U08)(hc & 0xFF); hdr[6] = (U08)(hc >> 8); }
 
-	URT_TxPkt(URT_IDX_1, hdr, 7);
+	URT_TxPkt(URT_IDX_BT, hdr, 7);
 
 
 
@@ -1157,19 +1161,19 @@ void DaBT_SendTrendFull_Ch(U08 ch)
 			// NOTE: RXNE is masked during URT_TxPkt, so the app must retransmit
 			//       the cancel frame several times (e.g. 50 ms apart) to guarantee
 			//       at least one frame lands in the HAL_Delay(20) window.
-			if(lmdb.f_rx[URT_IDX_1] == TRUE)
+			if(lmdb.f_rx[URT_IDX_BT] == TRUE)
 			{
-				U16 rx_crc = Mdb_GetCrc16(lmdb.rx_buf[URT_IDX_1], 5);
-				U08 rx_cmd = lmdb.rx_buf[URT_IDX_1][2];
-				if(lmdb.rx_buf[URT_IDX_1][5] == (U08)(rx_crc & 0xFF) &&
-				   lmdb.rx_buf[URT_IDX_1][6] == (U08)((rx_crc >> 8) & 0xFF) &&
+				U16 rx_crc = Mdb_GetCrc16(lmdb.rx_buf[URT_IDX_BT], 5);
+				U08 rx_cmd = lmdb.rx_buf[URT_IDX_BT][2];
+				if(lmdb.rx_buf[URT_IDX_BT][5] == (U08)(rx_crc & 0xFF) &&
+				   lmdb.rx_buf[URT_IDX_BT][6] == (U08)((rx_crc >> 8) & 0xFF) &&
 				   (rx_cmd == 0x08 || rx_cmd == 0x18))
 				{
 					fCancel = 1;
-					Damdb_ClrRxBuff(URT_IDX_1);
+					Damdb_ClrRxBuff(URT_IDX_BT);
 					break;
 				}
-				Damdb_ClrRxBuff(URT_IDX_1);
+				Damdb_ClrRxBuff(URT_IDX_BT);
 			}
 
 			buf_cnt = 0;
@@ -1204,7 +1208,7 @@ void DaBT_SendTrendFull_Ch(U08 ch)
 				}
 			}
 
-			URT_TxPkt(URT_IDX_1, buf, buf_cnt);
+			URT_TxPkt(URT_IDX_BT, buf, buf_cnt);
 			DpPOP_DrwDLoadProgress(end, total_cnt);
 			HAL_Delay(50);
 		}
@@ -1215,7 +1219,7 @@ void DaBT_SendTrendFull_Ch(U08 ch)
 			U08 crc_pkt[2] = {0};
 			crc_pkt[0] = (U08)(running_crc & 0xFF);
 			crc_pkt[1] = (U08)((running_crc >> 8) & 0xFF);
-			URT_TxPkt(URT_IDX_1, crc_pkt, 2);
+			URT_TxPkt(URT_IDX_BT, crc_pkt, 2);
 		}
 		else
 		{
@@ -1232,7 +1236,7 @@ void DaBT_SendTrendFull_Ch(U08 ch)
 			cancel_crc = Mdb_GetCrc16(cancel_rsp, 5);
 			cancel_rsp[5] = (U08)(cancel_crc & 0xFF);
 			cancel_rsp[6] = (U08)((cancel_crc >> 8) & 0xFF);
-			URT_TxPkt(URT_IDX_1, cancel_rsp, 7);
+			URT_TxPkt(URT_IDX_BT, cancel_rsp, 7);
 		}
 	}
 
@@ -1255,14 +1259,14 @@ void DaBT_SendTrend_Ch(U08 ch)
 		hdr[0] = 0x02; hdr[1] = 0x00; hdr[2] = cmd_lo;
 		hdr[3] = 0x00; hdr[4] = 0x00;
 		{ U16 hc = Mdb_GetCrc16(hdr, 5); hdr[5] = (U08)(hc & 0xFF); hdr[6] = (U08)(hc >> 8); }
-		URT_TxPkt(URT_IDX_1, hdr, 7);
+		URT_TxPkt(URT_IDX_BT, hdr, 7);
 
 		U08 tend[7]; U16 tc;
 		tend[0] = 0x02; tend[1] = 0x00; tend[2] = 0xFE;
 		tend[3] = 0x00; tend[4] = 0x00;
 		tc = Mdb_GetCrc16(tend, 5);
 		tend[5] = (U08)(tc & 0xFF); tend[6] = (U08)(tc >> 8);
-		URT_TxPkt(URT_IDX_1, tend, 7);
+		URT_TxPkt(URT_IDX_BT, tend, 7);
 		return;
 	}
 
@@ -1274,7 +1278,7 @@ void DaBT_SendTrend_Ch(U08 ch)
 	hdr[3] = (U08)((gTrend_total_cnt >> 8) & 0xFF);
 	hdr[4] = (U08)(gTrend_total_cnt & 0xFF);
 	{ U16 hc = Mdb_GetCrc16(hdr, 5); hdr[5] = (U08)(hc & 0xFF); hdr[6] = (U08)(hc >> 8); }
-	URT_TxPkt(URT_IDX_1, hdr, 7);
+	URT_TxPkt(URT_IDX_BT, hdr, 7);
 	// ??DaBT_ProcMain() ?ㅼ쓬 ?몄텧 ??DaBT_TrendStreamProc()媛 ?ㅽ뻾??
 }
 
@@ -1328,7 +1332,7 @@ void DaBT_TrendStreamProc(void)
 			}
 		}
 
-		URT_TxPkt(URT_IDX_1, buf, buf_cnt);
+		URT_TxPkt(URT_IDX_BT, buf, buf_cnt);
 		HAL_Delay(50);
 	}
 
@@ -1336,7 +1340,7 @@ void DaBT_TrendStreamProc(void)
 		U08 crc_pkt[2] = {0};
 		crc_pkt[0] = (U08)(running_crc & 0xFF);
 		crc_pkt[1] = (U08)((running_crc >> 8) & 0xFF);
-		URT_TxPkt(URT_IDX_1, crc_pkt, 2);
+		URT_TxPkt(URT_IDX_BT, crc_pkt, 2);
 	}
 
 	gTrend_streaming = 0;
@@ -1351,7 +1355,7 @@ static U08 BLE_SendATCmd(U08 *cmd, U16 len, const char *expect, U32 timeout_ms)
     memset((void*)gAt_rx_buf, 0, sizeof(gAt_rx_buf));
 
     if(cmd != NULL && len > 0)
-        URT_TxPkt(URT_IDX_1, cmd, len);
+        URT_TxPkt(URT_IDX_BT, cmd, len);
 
     U32 start = HAL_GetTick();
     while((HAL_GetTick() - start) < timeout_ms)
@@ -1382,14 +1386,14 @@ void DaBT_InItMain(void)
 
     buff_cnt = sprintf((char*)buff, "AT\r");
 
-    URT_InitMain(URT_IDX_1, 9600);
+    URT_InitMain(URT_IDX_BT, 9600);
     HAL_Delay(100);
     if(BLE_SendATCmd(buff, buff_cnt, "+OK", 1000))
         gBle_found_baud = 1;
 
     if(gBle_found_baud == 0)
     {
-        URT_InitMain(URT_IDX_1, 115200);
+        URT_InitMain(URT_IDX_BT, 115200);
         HAL_Delay(100);
         if(BLE_SendATCmd(buff, buff_cnt, "+OK", 1000))
             gBle_found_baud = 2;
@@ -1398,13 +1402,13 @@ void DaBT_InItMain(void)
     if(gBle_found_baud == 0)
     {
         buff_cnt = sprintf((char*)buff, "AT&F\r");
-        BLE_SendATCmd(buff, buff_cnt, "+OK", 3000);
+        BLE_SendATCmd(buff, buff_cnt, "+OK", 1000);
 
-        URT_InitMain(URT_IDX_1, 9600);
-        BLE_SendATCmd(0, 0, "+READY", 5000);
+        URT_InitMain(URT_IDX_BT, 9600);
+        BLE_SendATCmd(0, 0, "+READY", 1000);
     }
 
-    URT_InitMain(URT_IDX_1, (gBle_found_baud != 2) ? 9600 : 115200);
+    URT_InitMain(URT_IDX_BT, (gBle_found_baud != 2) ? 9600 : 115200);
     HAL_Delay(100);
 
     // MCU NRST 리셋 후 BLE 모듈이 이전 세션에 CONNECTED 상태로 남아있을 수 있음 → 강제 해제
@@ -1439,7 +1443,7 @@ void DaBT_InItMain(void)
     {
         buff_cnt = sprintf((char*)buff, "AT+UART=115200\r");
         BLE_SendATCmd(buff, buff_cnt, "+OK", 1000);
-        URT_InitMain(URT_IDX_1, 115200);
+        URT_InitMain(URT_IDX_BT, 115200);
         HAL_Delay(100);
     }
 #endif
@@ -1447,7 +1451,7 @@ void DaBT_InItMain(void)
 #if 0
     buff_cnt = sprintf((char*)buff, "AT+UART=9600\r");
     BLE_SendATCmd(buff, buff_cnt, "+OK", 1000);
-    URT_InitMain(URT_IDX_1, 9600);
+    URT_InitMain(URT_IDX_BT, 9600);
     HAL_Delay(100);
 #endif
     buff_cnt = sprintf((char*)buff, "AT+FLOWCONTROL=ON\r");
@@ -1465,6 +1469,113 @@ void DaBT_InItMain(void)
 //------------------------------------------------------------------------------------------------------------------------------
 //  BLE Main Process - Interface Meter
 //------------------------------------------------------------------------------------------------------------------------------
+static void DaBT_SendSettingAck(U16 cmd, U16 result)
+{
+	U08 buff[7];
+	U16 crc;
+
+	buff[0] = 0x02;
+	buff[1] = (U08)((cmd >> 8) & 0xFF);
+	buff[2] = (U08)(cmd & 0xFF);
+	buff[3] = (U08)((result >> 8) & 0xFF);
+	buff[4] = (U08)(result & 0xFF);
+	crc = Mdb_GetCrc16(buff, 5);
+	buff[5] = (U08)(crc & 0xFF);
+	buff[6] = (U08)((crc >> 8) & 0xFF);
+	URT_TxPkt(URT_IDX_BT, buff, 7);
+}
+
+static U16 DaBT_ApplyAppSetting(U16 cmd, U16 data)
+{
+	U08 ch;
+	U16 item;
+	S16 sdata;
+
+	if(cmd >= 1000 && cmd <= 1011)
+	{
+		ch = APP_CH_2;
+		item = cmd - 1000;
+	}
+	else if(cmd >= 1 && cmd <= 11)
+	{
+		ch = APP_CH_1;
+		item = cmd;
+	}
+	else
+	{
+		return 3; // unknown command
+	}
+
+	sdata = (S16)data;
+
+	switch(item)
+	{
+		case 1: // Echo Amp
+			if(data < MnMS1_ECHO_AMP_MIN || data > MnMS1_ECHO_AMP_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_ECHO_AMP, data);
+			break;
+
+		case 2: // Thr.Light Auto (%)
+			if(data < MnMS1_THR_VAL_AUTO_MIN || data > MnMS1_THR_VAL_AUTO_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_LIGHT, MnMS1_THRESHOLD_AUTO);
+			MnMSR_Set_Threshold_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_LIGHT, data);
+			break;
+
+		case 3: // Thr.Heavy Auto (%)
+			if(data < MnMS1_THR_VAL_AUTO_MIN || data > MnMS1_THR_VAL_AUTO_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_HEAVY, MnMS1_THRESHOLD_AUTO);
+			MnMSR_Set_Threshold_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_HEAVY, data);
+			break;
+
+		case 4: // Thr.Light Manual (0.1V)
+			if(data < MnMS1_THR_VAL_MANUAL_MIN || data > MnMS1_THR_VAL_MANUAL_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_LIGHT, MnMS1_THRESHOLD_MANUAL);
+			MnMSR_Set_Threshold_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_LIGHT, data);
+			break;
+
+		case 5: // Thr.Heavy Manual (0.1V)
+			if(data < MnMS1_THR_VAL_MANUAL_MIN || data > MnMS1_THR_VAL_MANUAL_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_HEAVY, MnMS1_THRESHOLD_MANUAL);
+			MnMSR_Set_Threshold_Ch_Value(ch, MnMS1_OPT_SINGLE_THR_HEAVY, data);
+			break;
+
+		case 6: // Frequency index: 0=380K, 1=270K, 2=160K, 3=130K
+			if(data < MnMS1_FREQ_MIN || data > MnMS1_FREQ_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_FREQ, data);
+			break;
+
+		case 7: // Offset, signed x0.01m
+			if(sdata < MnMS1_OFFSET_MIN || sdata > MnMS1_OFFSET_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_OFFSET, sdata);
+			break;
+
+		case 8: // 4mA set, x0.01m
+			if(data < MnOS0_SET_MA_MIN || data > MnOS0_SET_MA_MAX) return 1;
+			MnOUT_CurPrSet_Ch_Value(ch, MnOS0_OPT_SINGLE_SET_04mA, data);
+			break;
+
+		case 9: // 20mA set, x0.01m
+			if(data < MnOS0_SET_MA_MIN || data > MnOS0_SET_MA_MAX) return 1;
+			MnOUT_CurPrSet_Ch_Value(ch, MnOS0_OPT_SINGLE_SET_20mA, data);
+			break;
+
+		case 10: // TVG
+			if(data < MnEGN_TVG_MIN || data > MnEGN_TVG_MAX) return 1;
+			MnEGN_PrSet_Ch_Value(ch, MnEGN_OPT_SINGLE_TVG, data);
+			break;
+
+		case 11: // Damping
+			if(data < MnMS1_DAMPING_MIN || data > MnMS1_DAMPING_MAX) return 1;
+			MnMSR_CalSet_Ch_Value(ch, MnMS1_OPT_SINGLE_DAMPING, data);
+			break;
+
+		default:
+			return 3;
+	}
+
+	return 0;
+}
+
 void DaBT_ProcMain(void)
 {
 	if(gTrend_streaming)
@@ -1473,13 +1584,15 @@ void DaBT_ProcMain(void)
 		return;
 	}
 
-	U08 idx = URT_IDX_1;
+	U08 idx = URT_IDX_BT;
 
 	if(lmdb.f_rx[idx] == FALSE)
 		return;
 
 	U08 buff[20] = {0, };
 	U16 buff_cnt = 0;
+	U08 sof = lmdb.rx_buf[idx][0];
+	U16 cmd16 = ((U16)lmdb.rx_buf[idx][1] << 8) | (U16)lmdb.rx_buf[idx][2];
 	U08 cmd = lmdb.rx_buf[idx][2];
 	U16 data16 = ((U16)lmdb.rx_buf[idx][3] << 8) | (U16)lmdb.rx_buf[idx][4];
 
@@ -1491,6 +1604,14 @@ void DaBT_ProcMain(void)
 			Damdb_ClrRxBuff(idx);
 			return;
 		}
+	}
+
+	if(sof == 0x03)
+	{
+		U16 result = DaBT_ApplyAppSetting(cmd16, data16);
+		DaBT_SendSettingAck(cmd16, result);
+		Damdb_ClrRxBuff(idx);
+		return;
 	}
 
 	switch(cmd)
@@ -1536,7 +1657,7 @@ void DaBT_ProcMain(void)
 				buff[buff_cnt++] = (U08)(ota_crc & 0xFF);
 				buff[buff_cnt++] = (U08)((ota_crc >> 8) & 0xFF);
 			}
-			URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+			URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 
 			Damdb_ClrRxBuff(idx);
 
@@ -1616,7 +1737,7 @@ void DaBT_ProcMain(void)
 				rcrc = Mdb_GetCrc16(rbuf, 5);
 				rbuf[5] = (U08)(rcrc & 0xFF);
 				rbuf[6] = (U08)((rcrc >> 8) & 0xFF);
-				URT_TxPkt(URT_IDX_1, rbuf, 7);
+				URT_TxPkt(URT_IDX_BT, rbuf, 7);
 				HAL_Delay(500);
 			}
 
@@ -1638,10 +1759,11 @@ void DaBT_ProcMain(void)
 void DaMdb_ProcMain(void)
 {
 	U16 rx_addr,crc16;
+	U16 sel;
 
 	if(lmdb.f_rx[URT_IDX_2]==TRUE)
 	{
-		if(MnDAT_ComPrGet_Value(MnDS1_OPT_TYPE)!=MnDS1_TYPE_MDB)
+		if(MnDAT_ComPrGet_Value(MnDS2_OPT_TYPE)!=MnDS2_TYPE_MDB)
 			return;
 
 
@@ -1668,17 +1790,45 @@ void DaMdb_ProcMain(void)
 		#endif
 		Damdb_ClrRxBuff(URT_IDX_2);
 	}
+	else if(lmdb.f_rx[URT_IDX_1]==TRUE)
+	{	
 
-	/*
-	 * A hardware maps BLE BoT-nLE521 to URT_IDX_1/USART2.
-	 * Do not handle URT_IDX_1 here; otherwise BLE 7-byte command frames
-	 * such as 0x0000/0x0010 are consumed and cleared before DaBT_ProcMain().
-	 */
+		crc16 = Mdb_GetCrc16(lmdb.rx_buf[URT_IDX_1],6);
+		lmdb.crc_lo = (U08)((crc16 & 0x00ff) >> 0);
+		lmdb.crc_hi = (U08)((crc16 & 0xff00) >> 8);		
+
+		if(lmdb.rx_buf[URT_IDX_1][MDB_RX_06_CRC_LO] != lmdb.crc_lo)
+		{
+			Damdb_ClrRxBuff(URT_IDX_1);
+			return;
+		}
+		if(lmdb.rx_buf[URT_IDX_1][MDB_RX_07_CRC_HI] != lmdb.crc_hi)
+		{
+			Damdb_ClrRxBuff(URT_IDX_1);
+			return;
+		}
+
+		rx_addr = (lmdb.rx_buf[URT_IDX_1][MDB_RX_02_ADDR_H]<<8) + lmdb.rx_buf[URT_IDX_1][MDB_RX_03_ADDR_L];
+
+		sel = (lmdb.rx_buf[URT_IDX_1][MDB_RX_04_NULL]<<8) + lmdb.rx_buf[URT_IDX_1][MDB_RX_05_SIZE];
+		(void)sel;
+
+		switch(rx_addr)
+		{
+			case 1:	DaMdb_SaveEcho(APP_CH_1);	break;
+			case 2:	DaMdb_AutoGain(APP_CH_1);	break;
+			case 3: DaMdb_SaveEcho(APP_CH_2);	break;
+			case 4: DaMdb_AutoGain(APP_CH_2);	break;
+
+		}
+
+		Damdb_ClrRxBuff(URT_IDX_1);
+	}
 }
 
 void DaMdb_SetRxBuff(URT_IDX idx, U08 dr)
 {
-	U08 addr	= MnDAT_ComPrGet_Value(MnDS1_OPT_ADDR);
+	U08 addr	= MnDAT_ComPrGet_Value(MnDS2_OPT_ADDR);
 
 	#if 1
 	if(interrupt_cnt[idx]==0)
@@ -1757,8 +1907,8 @@ void DaWrf_ProcMain(void)
 	URT_InitMain(URT_IDX_RF,9600);
 
 
-	assign[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH1_ASSIGN);
-	assign[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH2_ASSIGN);
+	assign[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH1_ASSIGN);
+	assign[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH2_ASSIGN);
 
 	valu[APP_CH_1] = MsCAL_GetVl_RsltSldg(APP_CH_1,assign[APP_CH_1]);
 	valu[APP_CH_2] = MsCAL_GetVl_RsltSldg(APP_CH_2,assign[APP_CH_2]);	
@@ -1766,8 +1916,8 @@ void DaWrf_ProcMain(void)
 	curr[APP_CH_1] = OuCUR_GetOutp_Value(APP_CH_1);
 	curr[APP_CH_2] = OuCUR_GetOutp_Value(APP_CH_2);	
 	
-	rf_ch[APP_CH_1]  = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH1_ADDRESS);
-	rf_ch[APP_CH_2]  = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH2_ADDRESS);
+	rf_ch[APP_CH_1]  = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH1_ADDRESS);
+	rf_ch[APP_CH_2]  = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH2_ADDRESS);
 
 	
 	U08 buff[64] = {0, };
@@ -1830,8 +1980,8 @@ void DaWrf_ProcMain_Old(void)
 	U08 i;
 	URT_InitMain(URT_IDX_RF, 9600);
 
-	assign[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH1_ASSIGN);
-	//assign[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH2_ASSIGN);
+	assign[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH1_ASSIGN);
+	//assign[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH2_ASSIGN);
 
 	valu[APP_CH_1] = MsCAL_GetVl_RsltSldg(APP_CH_1, assign[APP_CH_1]);
 	//valu[APP_CH_2] = MsCAL_GetVl_RsltSldg(APP_CH_2, assign[APP_CH_2]);
@@ -1839,8 +1989,8 @@ void DaWrf_ProcMain_Old(void)
 	curr[APP_CH_1] = OuCUR_GetOutp_Value(APP_CH_1);
 	//curr[APP_CH_2] = OuCUR_GetOutp_Value(APP_CH_2);
 
-	rf_ch[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH1_ADDRESS);
-	//rf_ch[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS1_OPT_RF_CH2_ADDRESS);
+	rf_ch[APP_CH_1] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH1_ADDRESS);
+	//rf_ch[APP_CH_2] = MnDAT_ComPrGet_Value(MnDS2_OPT_RF_CH2_ADDRESS);
 
 	U08 RF_data_tx[12];
 	U08 buff[16];
@@ -1902,21 +2052,24 @@ void DaCOM_InitMain(void)
 	ComMdb_InitMain();
 	ComWrf_InitMain();
 		lmdb.ota_fble = FALSE;
-	DatComPr_BaudInit(MnDAT_ComPrGet_Value(MnDS1_OPT_BAUD));
+	DatComPr_BaudInit(MnDAT_ComPrGet_Value(MnDS2_OPT_BAUD));
 
 }
 
 void DaCOM_ProcMain(void)
 {
-	U08 type = MnDAT_ComPrGet_Value(MnDS1_OPT_TYPE);
+	U08 type = MnDAT_ComPrGet_Value(MnDS2_OPT_TYPE);
 
 	switch(type)
 	{
-		case MnDS1_TYPE_MDB:	DaMdb_ProcMain();	break;
-		case MnDS1_TYPE_RF:
+		case MnDS2_TYPE_MDB:	DaMdb_ProcMain();	break;
+		case MnDS2_TYPE_RF:
 			lrf.tx_cnt++;
 
-			DaWrf_ProcMain();  /* A 하드웨어: RF version 옵션 없음, 신규 함수만 사용 */
+			if(MnFTR_PrGet_RfVersion() == MnFTR_RF_VER_OLD)
+				DaWrf_ProcMain_Old();
+			else
+				DaWrf_ProcMain();
 			break;
 		default:									break;
 	}
@@ -1957,7 +2110,7 @@ void DaBT_SendDeviceInfo(void)
     buff[buff_cnt++] = (U08)(crc16 & 0xFF);
     buff[buff_cnt++] = (U08)((crc16 >> 8) & 0xFF);
 
-    URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+    URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 }
 
 void DaBT_SendPairingFail(void)
@@ -1977,7 +2130,7 @@ void DaBT_SendPairingFail(void)
     buff[buff_cnt++] = (U08)(crc16 & 0xFF);
     buff[buff_cnt++] = (U08)((crc16 >> 8) & 0xFF);
 
-    URT_TxPkt(URT_IDX_1, buff, buff_cnt);
+    URT_TxPkt(URT_IDX_BT, buff, buff_cnt);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

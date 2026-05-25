@@ -48,6 +48,7 @@ typedef struct {
 // Get Local Variables
 extern U08 MnLY1_GetSection(void);
 // Set Local Variables
+extern void MnLY1_SetSection(U08 sct);
 // Operation
 extern void MnLY1_InitSubSct(void);
 extern void MnLY1_ProcSubSct(void);

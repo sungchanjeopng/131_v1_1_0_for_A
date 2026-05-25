@@ -365,6 +365,7 @@ void DpSYS_DualBasePopUpdat(void)
 		case MnSYS_OPT_RTN_TIM:			DpSy2Val_RtTmUpdat();		return;
 		case MnSYS_OPT_TIME:			DpSy2Val_TimeUpdat();		return;
 		case MnSYS_OPT_FTR_RST:			DpSy2Val_FtRsUpdat();		return;
+		case MnSYS_OPT_FW_UPDATE_USB:		return;
 		case MnSYS_OPT_CH1_SITE_NAME:
 		case MnSYS_OPT_CH2_SITE_NAME:	DpSy2Val_SiteUpdat();		return;
 		default:						break;
@@ -458,6 +459,7 @@ void DpSYS_SingleBasePopUpdat(void)
 		case MnSYS_OPT_SINGLE_RTN_TIM:		DpSy2Val_RtTmUpdat();		return;
 		case MnSYS_OPT_SINGLE_TIME:			DpSy2Val_TimeUpdat();		return;
 		case MnSYS_OPT_SINGLE_FTR_RST:		DpSy2Val_FtRsUpdat();		return;
+		case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	return;
 		case MnSYS_OPT_SINGLE_SITE_NAME:	DpSy2Val_SiteUpdat();		return;
 		default:						break;
 	}
@@ -624,6 +626,7 @@ void DpSYS_DualBasePopIntro(void)
 		case MnSYS_OPT_PASSCODE:	min = 0; max=9999; fDp = _F_T;	break;
 		case MnSYS_OPT_TIME:		break;
 		case MnSYS_OPT_FTR_RST: 	break;
+		case MnSYS_OPT_FW_UPDATE_USB:	break;
 		// Not Yet
 		case MnSYS_OPT_LANG:		break;
 		default:					break;
@@ -641,6 +644,7 @@ void DpSYS_DualBasePopIntro(void)
 		case MnSYS_I01_RTN_TIM: 	fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sSel_PsSet); 	break;
 #endif
 		case MnSYS_OPT_FTR_RST: 	fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sCaut_Reset);	break;
+		case MnSYS_OPT_FW_UPDATE_USB:	fDp = _F_T;	_SPRINTF(lDpSys.pStr, "Use USB root: c1d-330.bin");	break;
 		// Not Yet
 		case MnSYS_OPT_LANG:		break;
 		default:					fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sNG);			break;
@@ -736,6 +740,7 @@ void DpSYS_SingleBasePopIntro(void)
 		case MnSYS_OPT_SINGLE_PASSCODE:	min = 0; max=9999; fDp = _F_T;	break;
 		case MnSYS_OPT_SINGLE_TIME:		break;
 		case MnSYS_OPT_SINGLE_FTR_RST: 	break;
+		case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	break;
 		// Not Yet
 		case MnSYS_OPT_SINGLE_LANG:		break;
 		default:						break;
@@ -753,6 +758,7 @@ void DpSYS_SingleBasePopIntro(void)
 		case MnSYS_I01_RTN_TIM: 	fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sSel_PsSet); 	break;
 #endif
 		case MnSYS_OPT_SINGLE_FTR_RST: 	fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sCaut_Reset);	break;
+		case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	fDp = _F_T;	_SPRINTF(lDpSys.pStr, "Use USB root: c1d-330.bin");	break;
 		// Not Yet
 		case MnSYS_OPT_SINGLE_LANG:		break;
 		default:					fDp = _F_T; 	_SPRINTF(lDpSys.pStr, _sNG);			break;
@@ -959,7 +965,7 @@ void DpSYS_PopUpdat(void)
 	switch(iSb)
 	{
 		case MnSYS_SUB_BASE:	DpSYS_BasePopUpdat();	break;
-		case MnSYS_SUB_ALARM:	DpSYS_AlarmPopUpdat();	break;
+		case MnSYS_SUB_ALARM:	break;
 		// Not Yet
 		default:
 			break;		
@@ -973,7 +979,7 @@ void DpSYS_PopIntro(void)
 	switch(iSb)
 	{
 		case MnSYS_SUB_BASE:	DpSYS_BasePopIntro();	break;
-		case MnSYS_SUB_ALARM:	DpSYS_AlarmPopIntro();	break;
+		case MnSYS_SUB_ALARM:	break;
 		// Not Yet
 		default:
 			break;		
@@ -1012,6 +1018,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_CH2_SITE_NAME],    gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_FACTORY_RESET);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FTR_RST], gDpStr.Text_list);		
+				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FW_UPDATE_USB], "Firmware Update (USB)");
 				DpSTR_GuiList(TEXT_LIST_TIMER);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],    gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_RESET);
@@ -1027,6 +1034,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_CH1_SITE_NAME],    _sCH1_SITE_NAME);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_CH2_SITE_NAME],    _sCH2_SITE_NAME);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FTR_RST], _sFtrRst);			
+				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FW_UPDATE_USB], "Firmware Update (USB)");
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],    _sAlarm_timer);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_RESET], _sAlarm_reset);	
 				break;
@@ -1055,6 +1063,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_SITE_NAME],	  gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_FACTORY_RESET);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FTR_RST], gDpStr.Text_list); 	
+				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FW_UPDATE_USB], "Firmware Update (USB)");
 				DpSTR_GuiList(TEXT_LIST_TIMER);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],	gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_RESET);
@@ -1069,6 +1078,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_RTN_TIM], _sRtnTim);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_SITE_NAME],	  _sSITE_NAME);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FTR_RST], _sFtrRst); 		
+				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FW_UPDATE_USB], "Firmware Update (USB)");
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],	_sAlarm_timer);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_RESET], _sAlarm_reset);	
 				break;
@@ -1114,6 +1124,7 @@ void DpSYS_InitVari(void)
 
 
 		_SPRINTF(lDpSys.sVa0[MnSYS_OPT_FTR_RST], "-");
+		_SPRINTF(lDpSys.sVa0[MnSYS_OPT_FW_UPDATE_USB], "-");
 
 	}
 	else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
@@ -1148,6 +1159,7 @@ void DpSYS_InitVari(void)
 		_SPRINTF(lDpSys.sVa0[MnSYS_OPT_SINGLE_SITE_NAME], "%c%d%d", val/100,(val%100)/10, (val%100)%10);
 		
 		_SPRINTF(lDpSys.sVa0[MnSYS_OPT_SINGLE_FTR_RST], "-");
+		_SPRINTF(lDpSys.sVa0[MnSYS_OPT_SINGLE_FW_UPDATE_USB], "-");
 	}
 
 

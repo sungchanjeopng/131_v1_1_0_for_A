@@ -36,6 +36,7 @@
 #include "menu_main.h"
 // self
 #include "menu_lyr0_section.h"
+#include "menu_lyr1_sub_sct.h"
 #include "menu_lyr2_item.h"
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -184,8 +185,8 @@ void MnLy0Evt_KeyEnter(void)
 	{
 		case MENU_SC0_MEAS:
 		case MENU_SC1_OUTP:
-		case MENU_SC2_DATA:
-		case MENU_SC3_SYST:		MENU_SetLayer(MENU_L1_SUB_SCT);		break;
+		case MENU_SC2_DATA:		MENU_SetLayer(MENU_L1_SUB_SCT);		break;
+		case MENU_SC3_SYST:		MnLY1_SetSection(MnSYS_SUB_BASE); MENU_SetLayer(MENU_L2_ITEM);	break;
 		case MENU_SC4_EGNR:
 		case MENU_SC5_FCTR:
 		case MENU_SC6_TEST:

@@ -210,6 +210,18 @@ void DpPOP_DrwDLoadEnd(void)
 	LCD_FlipFrame();
 }
 
+void DpPOP_DrwUsbExportMsg(const I08 *line1, const I08 *line2)
+{
+	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0,   DpPOP_DL_WD, 4,              _cPOP_BG_UPP, DpFIG_FILL);
+	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0+4, DpPOP_DL_WD, DpPOP_DL_HT-4,  _cPOP_BG_WND, DpFIG_FILL);
+	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Export (USB)");
+	if(line1 != 0)
+		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 82, _cPOP_ST_VAL_IDL, _cPOP_BG_WND, _fE17HsB, (I08*)line1);
+	if(line2 != 0)
+		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 122, _cPOP_ST_VAL_SEL, _cPOP_BG_WND, _fE22HsB, (I08*)line2);
+	LCD_FlipFrame();
+}
+
 //------------------------------------------------------------------------------------------------------------------------------
 //  OTA Firmware Update Popup (BLE OTA, CMD 0x50)
 //------------------------------------------------------------------------------------------------------------------------------
@@ -290,6 +302,9 @@ void DpPOP_DrwOtaResult(U16 result)
 		case 0x0004:  line1 = (I08*)"Update failed.";         line2 = (I08*)"Flash erase error";  break;
 		case 0x0005:  line1 = (I08*)"Update failed.";         line2 = (I08*)"Flash write error";  break;
 		case 0x0006:  line1 = (I08*)"Update failed.";         line2 = (I08*)"Timeout";            break;
+		case 0x0007:  line1 = (I08*)"Update failed.";         line2 = (I08*)"USB file error";     break;
+		case 0x0008:  line1 = (I08*)"Update failed.";         line2 = (I08*)"Invalid image";      break;
+		case 0x0009:  line1 = (I08*)"Update failed.";         line2 = (I08*)"Verify error";       break;
 		default:      line1 = (I08*)"Update failed.";         line2 = (I08*)"Unknown error";      break;
 	}
 
