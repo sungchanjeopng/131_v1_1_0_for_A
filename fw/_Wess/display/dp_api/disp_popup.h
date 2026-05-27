@@ -14,6 +14,7 @@
 //  Includes
 //------------------------------------------------------------------------------------------------------------------------------
 #include "app_sys.h"
+#include "bsp_ota.h"
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -107,6 +108,10 @@ extern void DpPOP_DrwOtaProgress(U32 rxBytes, U32 totalBytes);
 extern void DpPOP_DrwOtaStatus(const I08 *msg);
 extern void DpPOP_DrwOtaResult(U16 result);
 extern void DpPOP_DrwOtaEnd(void);
+
+/* USB firmware file browser list */
+extern void DpPOP_DrwFileList(const I08 *curDir, const OTA_USB_FILE *list, U08 count,
+                              U08 cursor, U08 pageTop, U08 rowsPerPage);
 
 
 #endif // ___DISP_POPUP_H___

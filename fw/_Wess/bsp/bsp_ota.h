@@ -42,6 +42,24 @@ enum {
 
 extern U08 *SDRAM_aEco_ota;
 
+//--------------------------------------------------------------------------------------------------
+//  USB firmware file browser
+//--------------------------------------------------------------------------------------------------
+#define OTA_USB_PATH_MAX   (128)
+#define OTA_USB_NAME_MAX   (64)
+#define OTA_USB_LIST_MAX   (64)
+
+typedef struct {
+	I08 path[OTA_USB_PATH_MAX];		// full path, e.g. "0:/dir/c1d-330.bin"
+	I08 name[OTA_USB_NAME_MAX];		// display name ("[dir]" for folders)
+	U32 size;						// file size in bytes (0 for folders)
+	U16 fdate;						// FAT date word
+	U08 isDir;						// 1 = folder, 0 = file
+} OTA_USB_FILE;
+
+// Lists folders + "c1d-330*.bin" files in dirPath. Returns entry count (files first, then folders).
+extern U08 ota_usb_browse(const I08 *dirPath, OTA_USB_FILE *list, U08 maxCount);
+
 extern void ota_init(void);
 extern void ota_dbg_status_set(U08 code, bool persist);
 extern U08 ota_dbg_status_get(void);

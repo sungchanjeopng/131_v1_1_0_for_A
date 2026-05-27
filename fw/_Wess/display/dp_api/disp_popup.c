@@ -15,7 +15,10 @@
 #include "disp_color.h"
 #include "disp_figure.h"
 #include "disp_string.h"
+#include "disp_titlebar.h"
 #include "menu_system.h"
+#include "menu_main.h"
+#include "dp_menu_main.h"
 // self
 #include "disp_popup.h"
 
@@ -158,10 +161,12 @@ void DpPOP_DrwIntro(void)
 //------------------------------------------------------------------------------------------------------------------------------
 //  Data Download Progress Popup (BLE trend full download, CMD 0x07/0x17)
 //------------------------------------------------------------------------------------------------------------------------------
+// Match the standard value popup footprint (DpPOP_DrwIntro: X100 Y100 W600 H~262)
+// so the export / download progress popup looks the same size as the rest of the UI.
 #define DpPOP_DL_X0		(100)
-#define DpPOP_DL_Y0		(140)
+#define DpPOP_DL_Y0		(100)
 #define DpPOP_DL_WD		(600)
-#define DpPOP_DL_HT		(220)
+#define DpPOP_DL_HT		(258)
 #define DpPOP_DL_PAD	(30)
 #define DpPOP_DL_BAR_X	(DpPOP_DL_X0 + DpPOP_DL_PAD)
 #define DpPOP_DL_BAR_Y	(DpPOP_DL_Y0 + 160)
@@ -318,6 +323,105 @@ void DpPOP_DrwOtaResult(U16 result)
 void DpPOP_DrwOtaEnd(void)
 {
 	DpPOP_ResetUiLayer();
+	LCD_FlipFrame();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+//  USB firmware file browser — keeps the native top bar (DpTTB) and bottom button
+//  bar (DpMN), draws the file list in the content window between them.
+//  NOTE: LCD_FillRect computes (799 - x0 - wid) / (479 - y0 - hei) for the 180-deg
+//  panel, so every fill must keep x0+wid <= 799 and y0+hei <= 479 (else U16 underflow
+//  -> garbage address -> nothing painted). The whole frame is redrawn each call so
+//  it stays correct across the page-flipped framebuffers.
+//------------------------------------------------------------------------------------------------------------------------------
+#define FB_TOPBAR_H		(64)							// native DpTTB top bar height
+#define FB_CONT_Y		(FB_TOPBAR_H)					// content window top (64)
+#define FB_CONT_H		(388 - FB_TOPBAR_H)				// content height (up to button-bar line @390)
+// NOTE: _fE17HsB glyph CELL height is 27px (top-anchored, extends downward).
+// Keep the path text fully clear of the separator below it: path bottom = 70+27 = 97,
+// separator at 104 -> 7px gap (previously 74+27=101 vs sep@102 -> bottom clipped/touched).
+#define FB_PATH_Y		(FB_TOPBAR_H + 6)				// 70  : current path (27px cell -> 70..97)
+#define FB_SEP_Y		(FB_TOPBAR_H + 40)				// 104 : separator (clear of path text)
+#define FB_ROW_Y0		(110)							// first list row top
+#define FB_ROW_H		(40)							// list row pitch
+#define FB_TXT_DY		(5)								// text top offset within a row (27px cell in 36px box)
+#define FB_NAME_X		(32)							// name column / left margin
+#define FB_SIZE_X		(548)							// size column
+#define FB_DATE_X		(656)							// date column
+
+void DpPOP_DrwFileList(const I08 *curDir, const OTA_USB_FILE *list, U08 count,
+                       U08 cursor, U08 pageTop, U08 rowsPerPage)
+{
+	I08 sBuf[48] = {0, };
+	U08 row;
+
+	// native top status bar (gradient), title replaced by this screen's name
+	DpTTB_UdtIntro(TEXT_LIST_MENU, 70, _cTTB_ST_TITLE);
+	DpSTR_TitleBar((I08*)"Firmware Update (USB)", 70, _cTTB_ST_TITLE);
+	DpTTB_RunIconTgl();		// draw the top-right status icons (USB / BLE / alarm / measure)
+
+	// content window background (between top bar and the button-bar line @ y390)
+	DpFIG_DrwRect(0, FB_CONT_Y, 799, FB_CONT_H, _cBGD_SCRN, DpFIG_FILL);
+
+	// current path + separator
+	DpSTR_GuiLeft(FB_NAME_X, FB_PATH_Y, _cSD_LIGHTGRAY, _cBGD_SCRN, _fE17HsB, (I08*)curDir);
+	DpFIG_DrwRect(FB_NAME_X, FB_SEP_Y, 736, 2, _cSD_DARKGRAY, DpFIG_FILL);
+
+	if (count > rowsPerPage)
+	{
+		U08 curPg = (U08)(pageTop / rowsPerPage) + 1;
+		U08 totPg = (U08)((count + rowsPerPage - 1) / rowsPerPage);
+		_SPRINTF(sBuf, "%u / %u", curPg, totPg);
+		DpSTR_GuiLeft(620, FB_PATH_Y, _cSD_LIGHTGRAY, _cBGD_SCRN, _fE17HsB, sBuf);
+	}
+
+	if (count == 0)
+	{
+		DpSTR_GuiLeft(FB_NAME_X, FB_ROW_Y0 + 40, _cSD_LIGHTGRAY, _cBGD_SCRN, _fE17HsB,
+		              (I08*)"No c1d-330 .bin files or folders.");
+	}
+	else
+	{
+		for (row = 0; row < rowsPerPage && (U08)(pageTop + row) < count; row++)
+		{
+			U08 idx = (U08)(pageTop + row);
+			U16 ry  = (U16)(FB_ROW_Y0 + (U16)row * FB_ROW_H);
+			U16 ty  = (U16)(ry + FB_TXT_DY);
+			U32 bg, nameCol, metaCol;
+
+			if (idx == cursor)
+			{
+				DpFIG_DrwRect(16, ry, 768, FB_ROW_H - 4, _cBTN_BX_SELE, DpFIG_FILL);
+				bg = _cBTN_BX_SELE; nameCol = _cSD_WHITE; metaCol = _cSD_WHITE;
+			}
+			else
+			{
+				bg      = _cBGD_SCRN;
+				nameCol = list[idx].isDir ? _cTTB_FG_PRDT : _cTTB_ST_TITLE;
+				metaCol = _cSD_GRAY;
+			}
+
+			DpSTR_GuiLeft(FB_NAME_X, ty, nameCol, bg, _fE17HsB, (I08*)list[idx].name);
+
+			if (!list[idx].isDir)
+			{
+				U16 fd = list[idx].fdate;
+				U08 yy = (U08)((((fd >> 9) & 0x7F) + 80) % 100);
+				U08 mm = (U08)((fd >> 5) & 0x0F);
+				U08 dd = (U08)(fd & 0x1F);
+
+				_SPRINTF(sBuf, "%luKB", (unsigned long)(list[idx].size / 1024u));
+				DpSTR_GuiLeft(FB_SIZE_X, ty, metaCol, bg, _fE17HsB, sBuf);
+
+				_SPRINTF(sBuf, "%02u-%02u-%02u", yy, mm, dd);
+				DpSTR_GuiLeft(FB_DATE_X, ty, metaCol, bg, _fE17HsB, sBuf);
+			}
+		}
+	}
+
+	// native bottom button bar (BACK / up / down / SET) — same as the menu item layer
+	DpMN_UpdtBttn(MENU_L2_ITEM);
+
 	LCD_FlipFrame();
 }
 

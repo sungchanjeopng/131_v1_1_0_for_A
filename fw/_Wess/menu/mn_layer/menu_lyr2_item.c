@@ -201,7 +201,20 @@ void MnLy2Evt_KeyEnter(void)
 			break;
 
 		case MENU_SC3_SYST:
-			lMnLy2.stt = MENU_S3_ENTER; 	break;
+		{
+			U08 iSb = MnLY1_GetSection();
+			U08 iIt = lMnLy2.iIt;
+			U08 isFw = (MnFTR_PrGet_SsChn() == MnFTR_SS_SINGLE)
+			           ? (iSb == MnSYS_SUB_BASE && iIt == MnSYS_OPT_SINGLE_FW_UPDATE_USB)
+			           : (iSb == MnSYS_SUB_BASE && iIt == MnSYS_OPT_FW_UPDATE_USB);
+			if(isFw)
+			{
+				MnSYS_FirmwareUpdateUsb();		// open file browser directly (1 press), stay on item layer
+				return;
+			}
+			lMnLy2.stt = MENU_S3_ENTER;
+			break;
+		}
 		case MENU_SC4_EGNR:
 			lMnLy2.stt = MENU_S3_ENTER;		break;
 			break;

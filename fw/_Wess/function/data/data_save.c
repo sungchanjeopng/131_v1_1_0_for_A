@@ -669,7 +669,7 @@ static void DaSAV_UsbCopyName(I08 *dst, U16 dstSize, const I08 *src)
 	dst[dstSize - 1U] = 0;
 }
 
-static void DaSAV_UsbWriteStdRec(BSP_USB_FILE *pFile, U32 no, const U08 *r)
+static void DaSAV_UsbWriteStdRec(BSP_USB_FILE *pFile, const U08 *r)
 {
 	U16 ch1Light = DaSAV_MakeU16(r, SAV_PKT_VAL_CH1_LIGHT_H, SAV_PKT_VAL_CH1_LIGHT_L);
 	U16 ch1Heavy = DaSAV_MakeU16(r, SAV_PKT_VAL_CH1_HEAVY_H, SAV_PKT_VAL_CH1_HEAVY_L);
@@ -679,8 +679,7 @@ static void DaSAV_UsbWriteStdRec(BSP_USB_FILE *pFile, U32 no, const U08 *r)
 	S16 ch2Tpr   = DaSAV_MakeS16(r, SAV_PKT_TPR_CH2_H,       SAV_PKT_TPR_CH2_L);
 
 	BspUsb_FilePrintf(pFile,
-		"%lu,20%02u-%02u-%02u,%02u:%02u,%u,%u,%d,%u,%u,%d,%u\r\n",
-		(unsigned long)no,
+		"20%02u-%02u-%02u %02u:%02u,%u,%u,%d,%u,%u,%d\r\n",
 		(unsigned int)r[SAV_PKT_TM_YEAR],
 		(unsigned int)r[SAV_PKT_TM_MONTH],
 		(unsigned int)r[SAV_PKT_TM_DAY],
@@ -691,15 +690,13 @@ static void DaSAV_UsbWriteStdRec(BSP_USB_FILE *pFile, U32 no, const U08 *r)
 		(int)ch1Tpr,
 		(unsigned int)ch2Light,
 		(unsigned int)ch2Heavy,
-		(int)ch2Tpr,
-		(unsigned int)r[SAV_PKT_STT]);
+		(int)ch2Tpr);
 }
 
-static void DaSAV_UsbWriteFieldRec(BSP_USB_FILE *pFile, U32 no, const U08 *r)
+static void DaSAV_UsbWriteFieldRec(BSP_USB_FILE *pFile, const U08 *r)
 {
 	BspUsb_FilePrintf(pFile,
-		"%lu,20%02u-%02u-%02u,%02u:%02u,%u,%u,%u,%u,%d,%u,%u,%u,%u,%d,%u,%u,%u,%u,%u\r\n",
-		(unsigned long)no,
+		"20%02u-%02u-%02u %02u:%02u,%u,%u,%u,%u,%d,%u,%u,%u,%u,%d,%u,%u,%u,%u,%u\r\n",
 		(unsigned int)r[SAV_PKT_FLD_TM_YEAR],
 		(unsigned int)r[SAV_PKT_FLD_TM_MONTH],
 		(unsigned int)r[SAV_PKT_FLD_TM_DAY],
@@ -759,7 +756,7 @@ U08 DaSAV_UsbExportCsv(I08 *filenameBuf, U16 filenameBufSize)
 			startAddr = 0;
 	}
 
-	BspUsb_MakeFilename(fname, sizeof(fname), "TREND", ".csv");
+	BspUsb_MakeFilename(fname, sizeof(fname), "ENV130", ".csv");
 	ret = BspUsb_FileOpenUnique(&file, fname);
 	if(ret != BspUsb_FILE_OK)
 		return ret;
@@ -767,9 +764,9 @@ U08 DaSAV_UsbExportCsv(I08 *filenameBuf, U16 filenameBufSize)
 	DaSAV_UsbCopyName(filenameBuf, filenameBufSize, file.name);
 
 	if(fieldMode == TRUE)
-		BspUsb_FilePrintf(&file, "No,Date,Time,Ch1Event,Ch1Light,Ch1Heavy,Ch1Raw,TprCh1,Ch2Event,Ch2Light,Ch2Heavy,Ch2Raw,TprCh2,Status,Position,Direction,VelH,VelL\r\n");
+		BspUsb_FilePrintf(&file, "Date,Ch1Event,CH1-Light Level,CH1-Heavy Level,Ch1Raw,CH1-Temp,Ch2Event,CH2-Light Level,CH2-Heavy Level,Ch2Raw,CH2-Temp,Status,Position,Direction,VelH,VelL\r\n");
 	else
-		BspUsb_FilePrintf(&file, "No,Date,Time,Ch1Light,Ch1Heavy,TprCh1,Ch2Light,Ch2Heavy,TprCh2,Status\r\n");
+		BspUsb_FilePrintf(&file, "Date,CH1-Light Level,CH1-Heavy Level,CH1-Temp,CH2-Light Level,CH2-Heavy Level,CH2-Temp\r\n");
 
 	for(i = 0; (i < count) && (file.error == BspUsb_FILE_OK); i++)
 	{
@@ -779,9 +776,9 @@ U08 DaSAV_UsbExportCsv(I08 *filenameBuf, U16 filenameBufSize)
 
 		MRM_RdBulk(_mTrBOD_START + ofs, rec, (U08)recSize);
 		if(fieldMode == TRUE)
-			DaSAV_UsbWriteFieldRec(&file, i + 1U, rec);
+			DaSAV_UsbWriteFieldRec(&file, rec);
 		else
-			DaSAV_UsbWriteStdRec(&file, i + 1U, rec);
+			DaSAV_UsbWriteStdRec(&file, rec);
 
 		if((i & 0x3FU) == 0U)
 			DaMdb_ProcMain();

@@ -25,6 +25,11 @@
 #include "menu_lyr4_addition.h"
 #include "disp_string.h"
 #include "disp_popup.h"
+// function
+#include "bsp_usb.h"
+#include "input_main.h"
+#include "input_key.h"
+#include <string.h>
 // self
 #include "menu_system.h"
 
@@ -45,19 +50,164 @@ MnSYS_LS lMnSys;
 //------------------------------------------------------------------------------------------------------------------------------
 
 
-static void MnSYS_FirmwareUpdateUsb(void)
+#define MnSYS_FWB_ROWS		(7)		// file-list rows per page (content window between top/bottom bars)
+
+static void MnSYS_FwBrowserDoUpdate(const I08 *path)
 {
 	U16 ret;
 
 	DpPOP_DrwOtaStart();
-	DpPOP_DrwOtaStatus((I08*)"Reading c1d-330.bin");
-	ret = ota_usb_program_file((I08*)"c1d-330.bin");
+	DpPOP_DrwOtaStatus((I08*)"Reading file...");
+	ret = ota_usb_program_file(path);
 	DpPOP_DrwOtaResult(ret);
 	HAL_Delay(1500);
 	DpPOP_DrwOtaEnd();
 
 	if(ret == OTA_RESULT_OK)
-		__NVIC_SystemReset();
+		__NVIC_SystemReset();		// success -> reboot, bootloader applies the image
+}
+
+// Restore the menu screen after the full-screen browser closes (the browser
+// overwrote the whole LCD, and the persistent framebuffer keeps the last image).
+static void MnSYS_FwBrowserClose(void)
+{
+	MENU_ReDrawAll();		// repaint top title bar (it was overwritten)
+	MnLY3_GotoLyr2();		// clear + repaint menu window: section box + item list + buttons (layer L2)
+}
+
+//  USB firmware update: browse files on the USB drive, pick one, then program it.
+//  Self-contained blocking loop (matches the original blocking OTA style); the
+//  normal scheduler resumes once this returns. Called directly on the item ENTER
+//  (see menu_lyr2_item.c) so it opens with a single press.
+//
+//  Key handling note: we scan keys ourselves while the scheduler is blocked, and
+//  InKEY only produces KEY_EVT_PUSH here (its long/repeat counters are cleared each
+//  tick by ClrEvt), so we edge-detect on the pressed index instead of waiting for
+//  SHORT/REPEAT events: PREV/NEXT repeat while held, MENU/ENTER fire once per press.
+void MnSYS_FirmwareUpdateUsb(void)
+{
+	static OTA_USB_FILE list[OTA_USB_LIST_MAX];
+	I08  curDir[OTA_USB_PATH_MAX];
+	U08  count;
+	U08  cursor  = 0;
+	U08  pageTop = 0;
+	U08  done    = 0;
+	U08  lastKey = KEY_IDX_ENTER;		// pre-arm: ignore the ENTER that opened this until released
+
+	if(BspUsb_IsMounted() == FALSE)
+	{
+		DpPOP_DrwOtaStart();
+		DpPOP_DrwOtaStatus((I08*)"No USB memory.");
+		HAL_Delay(1500);
+		MnSYS_FwBrowserClose();
+		return;
+	}
+
+	strcpy((char*)curDir, "0:/");
+	count = ota_usb_browse(curDir, list, OTA_USB_LIST_MAX);
+
+	DpPOP_DrwFileList(curDir, list, count, cursor, pageTop, MnSYS_FWB_ROWS);	// show immediately on entry
+	INPU_ClrKeyEvt(KEY_EVT_NONE);
+
+	while(done == 0)
+	{
+		U08 key;
+		U08 fresh;
+		U08 dirty = 0;					// redraw only when something actually changed
+
+		INPU_ProcMain();				// scheduler is blocked here, so scan keys ourselves
+
+		key = INPU_GetKeyIdx();
+		if(INPU_GetKeyEvt() == KEY_EVT_NONE)
+			key = KEY_IDX_NONE;			// no key currently pressed
+
+		if(key == KEY_IDX_NONE)
+		{
+			lastKey = KEY_IDX_NONE;		// released -> re-arm discrete keys
+		}
+		else
+		{
+			fresh = (U08)(key != lastKey);	// first frame of a new press
+			lastKey = key;
+			if(fresh)
+				dirty = 1;				// new press -> redraw once to wipe native button feedback
+
+			switch(key)
+			{
+				case KEY_IDX_PREV:		// repeat while held; mark dirty only when it moves
+					if(count > 0 && cursor > 0)
+					{
+						cursor--;
+						if(cursor < pageTop) pageTop = cursor;
+						dirty = 1;
+					}
+					break;
+
+				case KEY_IDX_NEXT:
+					if(count > 0 && (U08)(cursor + 1) < count)
+					{
+						cursor++;
+						if(cursor >= (U08)(pageTop + MnSYS_FWB_ROWS))
+							pageTop = (U08)(cursor - MnSYS_FWB_ROWS + 1);
+						dirty = 1;
+					}
+					break;
+
+				case KEY_IDX_MENU:		// one action per press
+					if(fresh)
+					{
+						if(strcmp((char*)curDir, "0:/") == 0 || strcmp((char*)curDir, "0:") == 0)
+						{
+							done = 1;							// leave browser -> back to menu
+						}
+						else
+						{
+							I08 *slash = strrchr((char*)curDir, '/');
+							if(slash != 0)
+							{
+								if(slash == curDir + 2)  *(slash + 1) = 0;	// "0:/abc" -> "0:/"
+								else                     *slash       = 0;	// "0:/a/b" -> "0:/a"
+							}
+							count   = ota_usb_browse(curDir, list, OTA_USB_LIST_MAX);
+							cursor  = 0;
+							pageTop = 0;
+							dirty   = 1;
+						}
+					}
+					break;
+
+				case KEY_IDX_ENTER:		// one action per press
+					if(fresh && count > 0)
+					{
+						if(list[cursor].isDir != 0)
+						{
+							strncpy((char*)curDir, (char*)list[cursor].path, OTA_USB_PATH_MAX - 1);
+							curDir[OTA_USB_PATH_MAX - 1] = 0;
+							count   = ota_usb_browse(curDir, list, OTA_USB_LIST_MAX);
+							cursor  = 0;
+							pageTop = 0;
+							dirty   = 1;
+						}
+						else
+						{
+							MnSYS_FwBrowserDoUpdate(list[cursor].path);
+							done = 1;						// only here if update failed (success reboots)
+						}
+					}
+					break;
+			}
+		}
+
+		INPU_ClrKeyEvt(KEY_EVT_NONE);
+
+		// Redraw ONLY when something changed. Idle = no redraw = no flicker.
+		if(done == 0 && dirty)
+			DpPOP_DrwFileList(curDir, list, count, cursor, pageTop, MnSYS_FWB_ROWS);
+
+		HAL_Delay(50);
+	}
+
+	MnSYS_FwBrowserClose();			// restore the menu screen (browser took over the whole LCD)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

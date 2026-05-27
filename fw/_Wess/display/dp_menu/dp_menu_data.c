@@ -257,9 +257,9 @@ void DpDatSav_PopUpdat(void)
 				default:					_SPRINTF(pSt0, _sNG);						break;
 			}
 			break;
-		case MnDS0_OPT_EXPORT_USB:
-			_SPRINTF(pSt0, "Press ENTER");
-			break;
+		case MnDS0_OPT_EXPORT_USB:		DpPOP_UdtValue(0,   _F_F, gDpStr.sYnN[0]);
+										DpPOP_UdtValue(1,   _F_F, gDpStr.sYnN[1]);
+										DpPOP_UdtValue(val, _F_T, gDpStr.sYnN[val]);	return;	// NO / YES selector
 		case MnDS0_OPT_DOWNLOAD:
 			if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
 			{

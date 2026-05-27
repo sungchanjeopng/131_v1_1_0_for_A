@@ -174,6 +174,7 @@ extern void MENU_PrRst_Factory(void);
 extern void MENU_InitSect(U08 Sel);
 extern void MENU_InitMain(void);
 extern void MENU_ExitMain(void);
+extern void MENU_ReDrawAll(void);
 extern void MENU_ProcMain(void);
 
 

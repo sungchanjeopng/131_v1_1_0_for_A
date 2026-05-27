@@ -241,6 +241,7 @@ extern void MnSYS_PrSetBase_Value(U08 iIt,S32 val);
 extern void MnSYS_PrSetBase_Ch_Value(U08 iIt,S32 val);
 extern void MnSYS_PrRst_Factory(void);
 extern void MnSYS_PrSetAlarm_Value(S32 val);
+extern void MnSYS_FirmwareUpdateUsb(void);		// open USB firmware file browser (called on item ENTER)
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Extern global APIs - Varables

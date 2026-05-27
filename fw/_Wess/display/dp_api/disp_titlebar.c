@@ -82,19 +82,31 @@ void DpTTB_DrwIcon(U08 idx, U32 col)
 	switch(idx)
 	{
 		case DpTTB_IC_USB:
-			/* USB icon: 채움 삼각형 없이 선 기반으로 표시(깨짐 방지) */
-			DpFIG_DrwLine(x0,   y0-18, x0,   y0+15, col);       /* Center stem */
-			DpFIG_DrwLine(x0+1, y0-18, x0+1, y0+15, col);       /* Thickness */
-			DpFIG_DrwLine(x0,   y0-18, x0-6, y0-10, col);       /* Top arrow left */
-			DpFIG_DrwLine(x0,   y0-18, x0+6, y0-10, col);       /* Top arrow right */
-			DpFIG_DrwLine(x0-5, y0-10, x0+5, y0-10, col);       /* Top arrow base */
-			DpFIG_DrwLine(x0,   y0-1,  x0-16, y0+8,  col);      /* Left branch */
-			DpFIG_DrwLine(x0+1, y0-1,  x0-15, y0+8,  col);
-			DpFIG_DrwLine(x0,   y0-1,  x0+16, y0+5,  col);      /* Right branch */
-			DpFIG_DrwLine(x0+1, y0-1,  x0+17, y0+5,  col);
-			DpFIG_DrwCirc(x0-17, y0+9,  3, col, _F_F);          /* Left node */
-			DpFIG_DrwRect(x0+14, y0+2,  7, 7, col, DpFIG_TK_02);/* Right node */
-			DpFIG_DrwCirc(x0,    y0+16, 4, col, _F_F);          /* Bottom node */
+			/* USB trident logo: arrow(up) + shaft + symmetric prongs + base dot.
+			 * Both prongs branch at the same point, same angle (mirror images), with
+			 * the circle(left) and square(right) nodes at the SAME height & matched
+			 * size so the icon reads balanced. Arrowhead is a filled triangle built
+			 * from stacked H-lines (robust on the 180-deg panel); nodes are solid. */
+			{
+				U08 r;
+				/* main shaft (3px thick) from arrow tip down to base dot */
+				DpFIG_DrwLine(x0-1, y0-18, x0-1, y0+16, col);
+				DpFIG_DrwLine(x0,   y0-18, x0,   y0+16, col);
+				DpFIG_DrwLine(x0+1, y0-18, x0+1, y0+16, col);
+				/* arrowhead at top (filled triangle, tip at y0-18 widening to +/-6) */
+				for(r=0; r<=6; r++)
+					DpFIG_DrwLine(x0-r, y0-18+r, x0+r, y0-18+r, col);
+				/* base: solid dot */
+				DpFIG_DrwCirc(x0, y0+17, 4, col, _F_T);
+				/* right prong -> solid square (node centered at y0-7) */
+				DpFIG_DrwLine(x0, y0+2, x0+12, y0-7, col);
+				DpFIG_DrwLine(x0, y0+3, x0+12, y0-6, col);
+				DpFIG_DrwRect(x0+10, y0-10, 7, 7, col, DpFIG_FILL);
+				/* left prong -> solid circle (node centered at y0-7, matched size) */
+				DpFIG_DrwLine(x0, y0+2, x0-12, y0-7, col);
+				DpFIG_DrwLine(x0, y0+3, x0-12, y0-6, col);
+				DpFIG_DrwCirc(x0-13, y0-7, 3, col, _F_T);
+			}
 			break;
 
 		case DpTTB_I0_ALM:

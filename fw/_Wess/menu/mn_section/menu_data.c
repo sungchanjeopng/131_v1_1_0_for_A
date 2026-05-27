@@ -105,7 +105,7 @@ S32 MnDAT_SavPrGet_Value(U08 iIt)
 	switch(iIt)
 	{
 		case MnDS0_OPT_INTERVAL:		val = lMnDat.mSavPr.intv;			break;
-		case MnDS0_OPT_EXPORT_USB:	val = 0;						break;
+		case MnDS0_OPT_EXPORT_USB:	val = MnDS0_DELETE_NO;			break;	// default NO (confirm before export)
 		case MnDS0_OPT_DOWNLOAD:		val = MnDS0_DOWN_CH1_LIGHT;			break;
 		case MnDS0_OPT_DELETE:			val = MnDS0_DELETE_NO;				break;
 		case MnDS0_OPT_DISPLAY_TERM:	val = lMnDat.mSavPr.display_term;	break;
@@ -160,8 +160,12 @@ void MnDAT_SavPrSet_Value(U08 iIt, S32 val)
 			MnLY3_GotoLyr2();			
 			break;
 		case MnDS0_OPT_EXPORT_USB:
-			DatSave_ExportUsb();
-			MnLY3_GotoLyr2();
+			switch(val)
+			{
+				case MnDS0_DELETE_YES:	DatSave_ExportUsb();	MnLY3_GotoLyr2();	break;	// YES -> run USB export
+				case MnDS0_DELETE_NO:
+				default:											MnLY3_GotoLyr2();	break;	// NO  -> just go back
+			}
 			break;
 		case MnDS0_OPT_DOWNLOAD:
 			DaSAV_DumpInit();

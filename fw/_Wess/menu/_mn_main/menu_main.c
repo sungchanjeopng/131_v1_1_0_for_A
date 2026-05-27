@@ -122,6 +122,13 @@ void MENU_InitSect(U08 Sel)
 	}
 }
 
+// Force the top title bar to repaint on the next MENU_ProcMain (used after a
+// full-screen takeover such as the USB firmware browser overwrites it).
+void MENU_ReDrawAll(void)
+{
+  lMn.fTt = _F_F;
+}
+
 void MENU_InitMain(void)
 {
   U08 i;

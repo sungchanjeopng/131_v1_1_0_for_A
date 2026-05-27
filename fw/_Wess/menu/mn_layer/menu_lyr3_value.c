@@ -651,7 +651,7 @@ void MnL2Val_Sc2Data(U08 iSb, U08 iIt, U08 key)
 			switch(iIt)
 			{
 				case MnDS0_OPT_INTERVAL:			MnL3Val_UpDn(key, MnDS0_INTV_MIN, MnDS0_INTV_MAX);			break;
-				case MnDS0_OPT_EXPORT_USB:		break;
+				case MnDS0_OPT_EXPORT_USB:		MnL3Val_UpDn(key, MnDS0_DELETE_MIN, MnDS0_DELETE_MAX);		break;	// NO / YES toggle
 				case MnDS0_OPT_DOWNLOAD:		
 					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)	
 						MnL3Val_UpDn(key, MnDS0_DOWN_MIN, MnDS0_DOWN_MAX);		
