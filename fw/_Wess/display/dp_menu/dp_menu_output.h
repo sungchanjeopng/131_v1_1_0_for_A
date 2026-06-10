@@ -35,10 +35,8 @@ typedef struct {
 	I08 sVl2[MnOS2_OPT_NUM][32];		// MnOUT_S02_PCD:     Value
 	I08 sIt3[MnOS3_OPT_NUM][32];		// MnOUT_S03_ERROR:   Item
 	I08 sVl3[MnOS3_OPT_NUM][32];		// MnOUT_S03_ERROR:   Value
-	#if 0
-	I08 sIt4[MnOS4_ITM_NUM][16];		// MnOUT_S04_COMM:    Item
-	I08 sVl4[MnOS4_ITM_NUM][16];		// MnOUT_S04_COMM:    Value
-	#endif
+	I08 sIt4[MnOS4_OPT_NUM][32];		// MnOUT_S04_EXT_INPUT: Item
+	I08 sVl4[MnOS4_OPT_NUM][32];		// MnOUT_S04_EXT_INPUT: Value
 	I08 pStr[64];
 
 } DpOUT_LS;
@@ -67,10 +65,8 @@ extern I08* DpOUT_GetAddrIt2(U08 idx);
 extern I08* DpOUT_GetAddrVl2(U08 idx);
 extern I08* DpOUT_GetAddrIt3(U08 idx);
 extern I08* DpOUT_GetAddrVl3(U08 idx);
-#if 0
 extern I08* DpOUT_GetAddrIt4(U08 idx);
 extern I08* DpOUT_GetAddrVl4(U08 idx);
-#endif
 // Addition
 extern void DpOUT_AddUpdat(void);
 extern void DpOUT_AddIntro(void);

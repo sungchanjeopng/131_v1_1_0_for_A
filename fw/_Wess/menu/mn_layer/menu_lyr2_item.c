@@ -85,6 +85,8 @@ void MnLy2Evt_KeyEnterOutput(void)
 					lMnLy2.stt = MENU_S3_ENTER; 	break;			
 				case MnOUT_SUB_ERROR:
 					lMnLy2.stt = MENU_S3_ENTER; 	break;
+				case MnOUT_SUB_EXT_INPUT:
+					lMnLy2.stt = MENU_S3_ENTER; 	break;
 				default:
 					break;
 			}			
@@ -334,6 +336,7 @@ void MnLY2_InitItem(void)
 					case MnOUT_SUB_RELAY:		lMnLy2.min = MnOS1_OPT_MIN; 	lMnLy2.max = MnOS1_OPT_NUM;		break;
 					case MnOUT_SUB_CLEAN:		lMnLy2.min = MnOS2_OPT_MIN; 	lMnLy2.max = MnOS2_OPT_NUM;		break;
 					case MnOUT_SUB_ERROR:		lMnLy2.min = MnOS3_OPT_MIN; 	lMnLy2.max = MnOS3_OPT_NUM;		break;
+					case MnOUT_SUB_EXT_INPUT:	lMnLy2.min = MnOS4_OPT_MIN; 	lMnLy2.max = MnOS4_OPT_NUM;		break;
 				}
 				break;
 			case MENU_SC2_DATA:
@@ -378,6 +381,7 @@ void MnLY2_InitItem(void)
 					case MnOUT_SUB_RELAY:		lMnLy2.min = MnOS1_OPT_MIN; 		lMnLy2.max = MnOS1_OPT_NUM; 		break;
 					case MnOUT_SUB_CLEAN:		lMnLy2.min = MnOS2_OPT_MIN; 		lMnLy2.max = MnOS2_OPT_NUM; 		break;
 					case MnOUT_SUB_ERROR:		lMnLy2.min = MnOS3_OPT_MIN; 		lMnLy2.max = MnOS3_OPT_NUM; 		break;
+					case MnOUT_SUB_EXT_INPUT:	lMnLy2.min = MnOS4_OPT_MIN; 		lMnLy2.max = MnOS4_OPT_NUM; 		break;
 				}
 				break;
 			case MENU_SC2_DATA:

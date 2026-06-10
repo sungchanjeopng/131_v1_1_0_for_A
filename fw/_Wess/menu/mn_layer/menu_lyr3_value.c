@@ -198,19 +198,28 @@ void MnL3Itr_Sc1Outp(U08 iSb, U08 iIt)
 			break;
 		case MnOUT_SUB_RELAY:	
 			lMnLy3.val = MnOUT_RlyPrGet_Value(iIt);
-			if(lMnLy3.updn_mod == MENU_V3_UPDN_DIG_VALUE)	break;
-			switch(iIt)
+			if(iIt >= MnOS1_OPT_NUM)
 			{
-				case MnOS1_OPT_ASSIGN:	
+				lMnLy3.val = MENU_VAL_INVALID;
+				break;
+			}
+			if(lMnLy3.updn_mod == MENU_V3_UPDN_DIG_VALUE)	break;
+			if(iIt == MnOS1_OPT_TEST)
+			{
+				lMnLy3.min = MnOS1_TEST_MIN;	lMnLy3.max = MnOS1_TEST_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG;
+				break;
+			}
+			switch(MnOS1_OPT_RLY_ITEM(iIt))
+			{
+				case MnOS1_RLY_ITEM_ASSIGN:	
 					lMnLy3.min = MnOS1_ASSIGN_MIN; 	
 					lMnLy3.max = MnOS1_ASSIGN_MAX;	
 					if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
 						lMnLy3.max = MnOS1_ASSIGN_CH1_HEAVY;	
 					break;
-				case MnOS1_OPT_ACT:			lMnLy3.min = MnOS1_ACT_MIN;		lMnLy3.max = MnOS1_ACT_MAX;			lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
-				case MnOS1_OPT_STOP:		lMnLy3.min = MnOS1_STOP_MIN;	lMnLy3.max = MnOS1_STOP_MAX;		lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
-				case MnOS1_OPT_TEST:		lMnLy3.min = MnOS1_TEST_MIN;	lMnLy3.max = MnOS1_TEST_MAX;		lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
-				default:																						break;
+				case MnOS1_RLY_ITEM_ACT:		lMnLy3.min = MnOS1_ACT_MIN;		lMnLy3.max = MnOS1_ACT_MAX;			lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
+				case MnOS1_RLY_ITEM_STOP:		lMnLy3.min = MnOS1_STOP_MIN;	lMnLy3.max = MnOS1_STOP_MAX;		lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
+				default:																				break;
 			}
 			break;
 		case MnOUT_SUB_CLEAN:			
@@ -232,6 +241,16 @@ void MnL3Itr_Sc1Outp(U08 iSb, U08 iIt)
 				case MnOS3_OPT_ERR_DELAY:	lMnLy3.min = MnOS3_ERR_DELAY_MIN;		lMnLy3.max = MnOS3_ERR_DELAY_MAX;			lMnLy3.updn_mod = MENU_V3_UPDN_DIG;	break;
 				case MnOS3_OPT_ERR_OUTP:	lMnLy3.min = MnOS3_ERR_OUTPUT_MIN;		lMnLy3.max = MnOS3_ERR_OUTPUT_MAX;			break;
 				default:																										break;
+			}
+			break;
+		case MnOUT_SUB_EXT_INPUT:
+			lMnLy3.val = MnOUT_ExtPrGet_Value(iIt);
+			if(lMnLy3.updn_mod == MENU_V3_UPDN_DIG_VALUE)	break;
+			switch(iIt)
+			{
+				case MnOS4_OPT_EXT1:
+				case MnOS4_OPT_EXT2:	lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
+				default:				lMnLy3.val = MENU_VAL_INVALID;	break;
 			}
 			break;
 		default:					lMnLy3.val = MENU_VAL_INVALID;				break;
@@ -296,9 +315,6 @@ void MnL3Itr_Sc3Syst(U08 iSb, U08 iIt)
 					case MnSYS_OPT_FTR_RST: 		
 						lMnLy3.val = MENU_CHK_NO;				
 						break;
-					case MnSYS_OPT_FW_UPDATE_USB:
-						lMnLy3.val = 0;
-						break;
 					// Not Yet
 					default:						
 						lMnLy3.val = MENU_VAL_INVALID;			
@@ -362,9 +378,6 @@ void MnL3Itr_Sc3Syst(U08 iSb, U08 iIt)
 						break;
 					case MnSYS_OPT_SINGLE_FTR_RST: 		
 						lMnLy3.val = MENU_CHK_NO;				
-						break;
-					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:
-						lMnLy3.val = 0;
 						break;
 					// Not Yet
 					default:						
@@ -651,7 +664,6 @@ void MnL2Val_Sc2Data(U08 iSb, U08 iIt, U08 key)
 			switch(iIt)
 			{
 				case MnDS0_OPT_INTERVAL:			MnL3Val_UpDn(key, MnDS0_INTV_MIN, MnDS0_INTV_MAX);			break;
-				case MnDS0_OPT_EXPORT_USB:		MnL3Val_UpDn(key, MnDS0_DELETE_MIN, MnDS0_DELETE_MAX);		break;	// NO / YES toggle
 				case MnDS0_OPT_DOWNLOAD:		
 					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)	
 						MnL3Val_UpDn(key, MnDS0_DOWN_MIN, MnDS0_DOWN_MAX);		
@@ -820,7 +832,6 @@ void MnL2Val_Sc3Syst(U08 sub, U08 iIt, U08 key)
 						}
 						break;
 					case MnSYS_OPT_FTR_RST: 		lMnLy3.val ^= 1;						break;
-					case MnSYS_OPT_FW_UPDATE_USB:	break;
 					// Not Yet
 					default:						lMnLy3.val = MENU_VAL_INVALID; 			break;
 				}
@@ -956,7 +967,6 @@ void MnL2Val_Sc3Syst(U08 sub, U08 iIt, U08 key)
 						}
 						break;
 					case MnSYS_OPT_SINGLE_FTR_RST: 		lMnLy3.val ^= 1;						break;
-					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:	break;
 					// Not Yet
 					default:						lMnLy3.val = MENU_VAL_INVALID;			break;
 				}
@@ -1260,13 +1270,14 @@ void MnLy2Act_EnterOut(void)
 			}
 			break;
 		case MnOUT_SUB_RELAY:	
+			if(iIt >= MnOS1_OPT_NUM)	return;
+			if(iIt == MnOS1_OPT_TEST)	break;
 			MnOUT_RlyPrSet_Value(iIt, lMnLy3.val);
-			switch(iIt)
+			switch(MnOS1_OPT_RLY_ITEM(iIt))
 			{
-				case MnOS1_OPT_ASSIGN:		MnLY3_GotoLyr2();	break;
-				case MnOS1_OPT_ACT: 		break;
-				case MnOS1_OPT_STOP:		break;
-				case MnOS1_OPT_TEST:		break;
+				case MnOS1_RLY_ITEM_ASSIGN:	MnLY3_GotoLyr2();	break;
+				case MnOS1_RLY_ITEM_ACT:		break;
+				case MnOS1_RLY_ITEM_STOP:		break;
 				default:					return;
 			}
 			break;
@@ -1287,6 +1298,15 @@ void MnLy2Act_EnterOut(void)
 				case MnOS3_OPT_ERR_DELAY:	break;
 				case MnOS3_OPT_ERR_OUTP:	MnLY3_GotoLyr2();	break;
 				default:					break;
+			}
+			break;
+		case MnOUT_SUB_EXT_INPUT:
+			MnOUT_ExtPrSet_Value(iIt, lMnLy3.val);
+			switch(iIt)
+			{
+				case MnOS4_OPT_EXT1:
+				case MnOS4_OPT_EXT2:	MnLY3_GotoLyr2();	break;
+				default:			break;
 			}
 			break;
 		default:
@@ -1353,10 +1373,6 @@ void MnLy2Act_EnterSys(void)
 					case MnSYS_OPT_CH2_SITE_NAME:	
 						MnSYS_PrSetBase_Value(iIt,lMnLy3.val);	
 						break;
-					case MnSYS_OPT_FW_UPDATE_USB:
-						MnSYS_PrSetBase_Value(iIt,lMnLy3.val);
-						MnLY3_GotoLyr2();
-						break;
 					default:						MnLY3_GotoLyr2();				break;
 				}
 				break;
@@ -1395,10 +1411,6 @@ void MnLy2Act_EnterSys(void)
 					case MnSYS_OPT_SINGLE_SITE_NAME:
 						MnSYS_PrSetBase_Ch_Value(iIt,lMnLy3.val);	
 						DpTTB_UdtIntro(TEXT_LIST_MENU, 330, _cTTB_ST_TITLE);
-						break;
-					case MnSYS_OPT_SINGLE_FW_UPDATE_USB:
-						MnSYS_PrSetBase_Ch_Value(iIt,lMnLy3.val);
-						MnLY3_GotoLyr2();
 						break;
 					default:						MnLY3_GotoLyr2();				break;
 				}
@@ -1796,7 +1808,7 @@ void MnLY3_GotoLyr2(void)
 		case MENU_SC0_MEAS:
 		case MENU_SC1_OUTP:
 		case MENU_SC2_DATA:
-		case MENU_SC3_SYST:			break;
+		case MENU_SC3_SYST:			DpM1_IntroSub();				break;
 		case MENU_SC4_EGNR:
 		case MENU_SC5_FCTR:
 		case MENU_SC6_TEST:

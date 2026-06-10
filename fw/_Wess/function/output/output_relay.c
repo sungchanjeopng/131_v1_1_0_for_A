@@ -31,6 +31,14 @@
 //  Global variables
 //------------------------------------------------------------------------------------------------------------------------------
 U08 gRly_state;
+static U08 lRly_state[MnOUT_RLY_NUM];
+
+static const U08 lOuRly_DmxOut[MnOUT_RLY_NUM] = {
+	DMX_OUT_RELAY_1,
+	DMX_OUT_RELAY_2,
+	DMX_OUT_RELAY_3,
+	DMX_OUT_RELAY_4,
+};
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local variables
@@ -40,7 +48,42 @@ OuRLY_LS lOuRly;
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
 //------------------------------------------------------------------------------------------------------------------------------
+static void OuRLY_SetContactCh(U08 rly, U08 con)
+{
+	if(rly >= MnOUT_RLY_NUM)	return;
 
+	switch(con)
+	{
+		case OuRLY_OPEN:		DMX_SetIo(lOuRly_DmxOut[rly], GIO_LV_HI);	break;
+		case OuRLY_CLOSED:	DMX_SetIo(lOuRly_DmxOut[rly], GIO_LV_LO);	break;
+		default:
+			break;
+	}
+}
+
+static U08 OuRLY_GetAssignValue(U08 assign, U16 *pVal)
+{
+	U08 ch;
+	U08 thr;
+
+	switch(assign)
+	{
+		case MnOS1_ASSIGN_CH1_HEAVY:	ch = APP_CH_1;	thr = MsCAL_THR_HEAVY;	break;
+		case MnOS1_ASSIGN_CH1_LIGHT:	ch = APP_CH_1;	thr = MsCAL_THR_LIGHT;	break;
+		case MnOS1_ASSIGN_CH2_HEAVY:	ch = APP_CH_2;	thr = MsCAL_THR_HEAVY;	break;
+		case MnOS1_ASSIGN_CH2_LIGHT:	ch = APP_CH_2;	thr = MsCAL_THR_LIGHT;	break;
+		default:					return FALSE;
+	}
+
+	switch(MnMSR_BaseGet_Ch_Value(ch, MnMS0_OPT_SINGLE_OPERATION))
+	{
+		case MnMS0_OPERATION_DISTANCE:	*pVal = MsCAL_GetVl_RsltDist(ch, thr);	break;
+		case MnMS0_OPERATION_SLUDGE:	*pVal = MsCAL_GetVl_RsltSldg(ch, thr);	break;
+		default:					return FALSE;
+	}
+
+	return TRUE;
+}
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Global APIs - Variables
@@ -56,120 +99,69 @@ void OuRLY_SetTestfEn(U08 sel)	{	lOuRly.test_fEn = sel;		}
 //------------------------------------------------------------------------------------------------------------------------------
 void OuRLY_SetContact(U08 con)
 {
-	switch(con)
-	{
-		case OuRLY_OPEN:		DMX_SetIo(DMX_OUT_RELAY_1, GIO_LV_HI);	break;
-		case OuRLY_CLOSED:		DMX_SetIo(DMX_OUT_RELAY_1, GIO_LV_LO);	break;
-		default:
-			break;
-	}
+	OuRLY_SetContactCh(MnOUT_RLY_0, con);
 }
 
 void OuRLY_InitMain(void)
 {	
+	U08 rly;
+
 	gRly_state = OuRLY_CLOSED;
 	lOuRly.test_fEn = FALSE;
-	//OuRLY_SetContact(OuRLY_OPEN);
-	OuRLY_SetContact(OuRLY_CLOSED);
+
+	for(rly=0; rly<MnOUT_RLY_NUM; rly++)
+	{
+		lRly_state[rly] = OuRLY_CLOSED;
+		OuRLY_SetContactCh(rly, OuRLY_CLOSED);
+	}
 }
 
 
 void OuRLY_ProcMain(void)
 {
 	U16 valu;
-	U08 assign = MnOUT_RlyPrGet_Value(MnOS1_OPT_ASSIGN);
+	U08 rly;
+	U08 assign;
+	U16 rly_act;
+	U16 rly_stop;
 
-	U16 rly_act		= MnOUT_RlyPrGet_Value(MnOS1_OPT_ACT);
-	U16 rly_stop 	= MnOUT_RlyPrGet_Value(MnOS1_OPT_STOP);
-	//Not Yet
-
-
-	switch(assign)
+	for(rly=0; rly<MnOUT_RLY_NUM; rly++)
 	{
-		case MnOS1_ASSIGN_CH1_HEAVY:	
-			switch(MnMSR_BaseGet_Ch_Value(APP_CH_1, MnMS0_OPT_SINGLE_OPERATION))
-			{
-				case MnMS0_OPERATION_DISTANCE:	valu = MsCAL_GetVl_RsltDist(APP_CH_1,MsCAL_THR_HEAVY);	break;
-				case MnMS0_OPERATION_SLUDGE:	valu = MsCAL_GetVl_RsltSldg(APP_CH_1,MsCAL_THR_HEAVY);	break;
-				default:
-					break;
-			}
-			break;
-		case MnOS1_ASSIGN_CH1_LIGHT:
-			switch(MnMSR_BaseGet_Ch_Value(APP_CH_1, MnMS0_OPT_SINGLE_OPERATION))
-			{
-				case MnMS0_OPERATION_DISTANCE:	valu = MsCAL_GetVl_RsltDist(APP_CH_1,MsCAL_THR_LIGHT);	break;
-				case MnMS0_OPERATION_SLUDGE:	valu = MsCAL_GetVl_RsltSldg(APP_CH_1,MsCAL_THR_LIGHT);	break;
-				default:
-					break;
-			}
-			break;
-		case MnOS1_ASSIGN_CH2_HEAVY:
-			switch(MnMSR_BaseGet_Ch_Value(APP_CH_2, MnMS0_OPT_SINGLE_OPERATION))
-			{
-				case MnMS0_OPERATION_DISTANCE:	valu = MsCAL_GetVl_RsltDist(APP_CH_2,MsCAL_THR_HEAVY);	break;
-				case MnMS0_OPERATION_SLUDGE:	valu = MsCAL_GetVl_RsltSldg(APP_CH_2,MsCAL_THR_HEAVY);	break;
-				default:
-					break;
-			}
-			break;
-		case MnOS1_ASSIGN_CH2_LIGHT:
-			switch(MnMSR_BaseGet_Ch_Value(APP_CH_2, MnMS0_OPT_SINGLE_OPERATION))
-			{
-				case MnMS0_OPERATION_DISTANCE:	valu = MsCAL_GetVl_RsltDist(APP_CH_2,MsCAL_THR_LIGHT);	break;
-				case MnMS0_OPERATION_SLUDGE:	valu = MsCAL_GetVl_RsltSldg(APP_CH_2,MsCAL_THR_LIGHT);	break;
-				default:
-					break;
-			}
-			break;
-		default:
-			break;
-	}
-#if 0
-	switch(ScHYB_PrGet_LvTyp())
-	{
-		case 0:
-			switch(rly_assign)
-			{
-				case MnOS1_IV0_CH_0:		valu = valu_sldg_CH_S0;									break;
-				case MnOS1_IV0_CH_1:		valu = valu_sldg_CH_S1;									break;
-				case MnOS1_IV0_DIFF:		valu = _ABS(valu_sldg_CH_S0-valu_sldg_CH_S1);			break;
-				case MnOS1_IV0_AVRG:		valu = (valu_sldg_CH_S0+valu_sldg_CH_S1)/MsCAL_CH_NUM;	break;
-				default:					return;
-			}			
-			break;
-		case 1:
-			switch(rly_assign)
-			{
-				case MnOS1_IV0_CH_0:		valu = valu_dist_CH_S0;									break;
-				case MnOS1_IV0_CH_1:		valu = valu_dist_CH_S1;									break;
-				case MnOS1_IV0_DIFF:		valu = _ABS(valu_dist_CH_S0-valu_dist_CH_S1);			break;
-				case MnOS1_IV0_AVRG:		valu = (valu_dist_CH_S0+valu_dist_CH_S1)/MsCAL_CH_NUM;	break;
-				default:					return;
-			}
-			break;
-		default:							return;
+		valu = 0;
+		assign = (U08)MnOUT_RlyPrGet_Value(MnOS1_OPT_RLY_ASSIGN(rly));
+		rly_act  = (U16)MnOUT_RlyPrGet_Value(MnOS1_OPT_RLY_ACT(rly));
+		rly_stop = (U16)MnOUT_RlyPrGet_Value(MnOS1_OPT_RLY_STOP(rly));
 
-	}
-#endif
-
-	if(lOuRly.test_fEn)		valu=MnLY3_GetValue();
+		if(lOuRly.test_fEn)
+		{
+			valu = MnLY3_GetValue();
+		}
+		else if(OuRLY_GetAssignValue(assign, &valu) == FALSE)
+		{
+			OuRLY_SetContactCh(rly, lRly_state[rly]);
+			continue;
+		}
 	
-	
-	if(rly_act > rly_stop)
-	{
-		if		(valu >= rly_act)	gRly_state = OuRLY_OPEN;
-		else if (valu <= rly_stop)	gRly_state = OuRLY_CLOSED;
-	}
-	else if(rly_act < rly_stop)
-	{
-		if		(valu <= rly_act)	gRly_state = OuRLY_CLOSED;
-		else if (valu >= rly_stop)	gRly_state = OuRLY_OPEN;		
+		if((rly == MnOUT_RLY_2) || (rly == MnOUT_RLY_3))
+		{
+			if		(valu <= rly_act)	lRly_state[rly] = OuRLY_OPEN;
+			else if (valu >= rly_stop)	lRly_state[rly] = OuRLY_CLOSED;
+		}
+		else if(rly_act > rly_stop)
+		{
+			if		(valu >= rly_act)	lRly_state[rly] = OuRLY_OPEN;
+			else if (valu <= rly_stop)	lRly_state[rly] = OuRLY_CLOSED;
+		}
+		else if(rly_act < rly_stop)
+		{
+			if		(valu <= rly_act)	lRly_state[rly] = OuRLY_CLOSED;
+			else if (valu >= rly_stop)	lRly_state[rly] = OuRLY_OPEN;		
+		}
+
+		OuRLY_SetContactCh(rly, lRly_state[rly]);
 	}
 
-	OuRLY_SetContact(gRly_state);
-
-	
+	gRly_state = lRly_state[MnOUT_RLY_0];
 }
 
 

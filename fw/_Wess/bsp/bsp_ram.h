@@ -189,6 +189,17 @@ enum {
 	_mAUTO_VOLT_MIN_L,				_mAUTO_VOLT_MIN_H,
 	_mRSV61,
 	_mRF_VERSION,		_mRF_VERSION_RSV,					// RF Version: 0=New, 1=Old(ENV110)
+	_mRELAY2_ASSIGN,	_mRELAY2_RSV,
+	_mRELAY2_ACT_L,	_mRELAY2_ACT_H,
+	_mRELAY2_STOP_L,	_mRELAY2_STOP_H,
+	_mRELAY3_ASSIGN,	_mRELAY3_RSV,
+	_mRELAY3_ACT_L,	_mRELAY3_ACT_H,
+	_mRELAY3_STOP_L,	_mRELAY3_STOP_H,
+	_mRELAY4_ASSIGN,	_mRELAY4_RSV,
+	_mRELAY4_ACT_L,	_mRELAY4_ACT_H,
+	_mRELAY4_STOP_L,	_mRELAY4_STOP_H,
+	_mEXT_IN1_ENABLE,	_mEXT_IN1_TARGET,
+	_mEXT_IN2_ENABLE,	_mEXT_IN2_TARGET,
 	_mMENU_END			= 0x00FFF,
 
 	//--------------------------------------------------------------------------------------------------------------------------

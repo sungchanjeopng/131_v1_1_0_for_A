@@ -38,6 +38,7 @@ enum {
 	MnOUT_SUB_RELAY,
 	MnOUT_SUB_CLEAN,
 	MnOUT_SUB_ERROR,
+	MnOUT_SUB_EXT_INPUT,
 	// Number Max
 	MnOUT_SUB_NUM,
 };
@@ -106,13 +107,49 @@ enum {
 #define MnOS0_TRIM_DEF	(0)
 
 enum {
-	MnOS1_OPT_ASSIGN = 0,
-	MnOS1_OPT_ACT,
-	MnOS1_OPT_STOP,
+	MnOUT_RLY_0 = 0,
+	MnOUT_RLY_1,
+	MnOUT_RLY_2,
+	MnOUT_RLY_3,
+	// Number Max
+	MnOUT_RLY_NUM,
+};
+
+enum {
+	MnOS1_RLY_ITEM_ASSIGN = 0,
+	MnOS1_RLY_ITEM_ACT,
+	MnOS1_RLY_ITEM_STOP,
+	// Number Max
+	MnOS1_RLY_ITEM_NUM,
+};
+
+enum {
+	MnOS1_OPT_R1_ASSIGN = 0,
+	MnOS1_OPT_R1_ACT,
+	MnOS1_OPT_R1_STOP,
+	MnOS1_OPT_R2_ASSIGN,
+	MnOS1_OPT_R2_ACT,
+	MnOS1_OPT_R2_STOP,
+	MnOS1_OPT_R3_ASSIGN,
+	MnOS1_OPT_R3_ACT,
+	MnOS1_OPT_R3_STOP,
+	MnOS1_OPT_R4_ASSIGN,
+	MnOS1_OPT_R4_ACT,
+	MnOS1_OPT_R4_STOP,
 	MnOS1_OPT_TEST,
 
 	MnOS1_OPT_NUM,
 };
+
+#define MnOS1_OPT_RLY_IDX(_it)		((U08)((_it) / MnOS1_RLY_ITEM_NUM))
+#define MnOS1_OPT_RLY_ITEM(_it)		((U08)((_it) % MnOS1_RLY_ITEM_NUM))
+#define MnOS1_OPT_RLY_ASSIGN(_rly)	((U08)(((_rly) * MnOS1_RLY_ITEM_NUM) + MnOS1_RLY_ITEM_ASSIGN))
+#define MnOS1_OPT_RLY_ACT(_rly)		((U08)(((_rly) * MnOS1_RLY_ITEM_NUM) + MnOS1_RLY_ITEM_ACT))
+#define MnOS1_OPT_RLY_STOP(_rly)		((U08)(((_rly) * MnOS1_RLY_ITEM_NUM) + MnOS1_RLY_ITEM_STOP))
+
+#define MnOS1_OPT_ASSIGN	(MnOS1_OPT_R1_ASSIGN)
+#define MnOS1_OPT_ACT		(MnOS1_OPT_R1_ACT)
+#define MnOS1_OPT_STOP		(MnOS1_OPT_R1_STOP)
 
 #define MnOS1_OPT_MIN (MnOS1_OPT_ASSIGN)
 #define MnOS1_OPT_MAX (MnOS1_OPT_NUM-1)
@@ -138,10 +175,10 @@ enum {
 #define MnOS1_STOP_MIN			(0)
 #define MnOS1_STOP_MAX			(1000)
 #define MnOS1_STOP_DEF			(800)	// 10m
-// Value - Relay Item #3 (Test)
+// Value - Factory Relay Test
 #define MnOS1_TEST_MIN			(0)
 #define MnOS1_TEST_MAX			(1000)
-#define MnOS1_TEST_DEF			(0)	// 10m
+#define MnOS1_TEST_DEF			(0)
 
 enum {
 	MnOS2_OPT_MODE=0,
@@ -193,6 +230,60 @@ enum {
 #define MnOS3_ERR_OUTPUT_MIN			(MnOS3_ERR_OUTPUT_HOLD)
 #define MnOS3_ERR_OUTPUT_MAX			(MnOS3_ERR_OUTPUT_NUM-1)
 #define MnOS3_ERR_OUTPUT_DEF			(MnOS3_ERR_OUTPUT_HOLD)
+
+// Item List - Sub-Section #4 (External Input)
+enum {
+	MnOS4_OPT_EXT1 = 0,
+	MnOS4_OPT_EXT2,
+	// Number Max
+	MnOS4_OPT_NUM,
+};
+
+#define MnOS4_OPT_MIN			(MnOS4_OPT_EXT1)
+#define MnOS4_OPT_MAX			(MnOS4_OPT_NUM-1)
+
+enum {
+	MnOS4_EXT_INPUT_1 = 0,
+	MnOS4_EXT_INPUT_2,
+	// Number Max
+	MnOS4_EXT_INPUT_NUM,
+};
+
+enum {
+	MnOS4_ENABLE_OFF = 0,
+	MnOS4_ENABLE_ON,
+	// Number Max
+	MnOS4_ENABLE_NUM,
+};
+
+#define MnOS4_ENABLE_MIN		(MnOS4_ENABLE_OFF)
+#define MnOS4_ENABLE_MAX		(MnOS4_ENABLE_NUM-1)
+#define MnOS4_ENABLE_DEF		(MnOS4_ENABLE_OFF)
+
+enum {
+	MnOS4_TARGET_CH1 = 0,
+	MnOS4_TARGET_CH2,
+	MnOS4_TARGET_ALL,
+	// Number Max
+	MnOS4_TARGET_NUM,
+};
+
+#define MnOS4_TARGET_MIN		(MnOS4_TARGET_CH1)
+#define MnOS4_TARGET_MAX		(MnOS4_TARGET_NUM-1)
+#define MnOS4_TARGET_DEF		(MnOS4_TARGET_CH1)
+
+enum {
+	MnOS4_VALUE_OFF = 0,
+	MnOS4_VALUE_CH1,
+	MnOS4_VALUE_CH2,
+	MnOS4_VALUE_ALL,
+	// Number Max
+	MnOS4_VALUE_NUM,
+};
+
+#define MnOS4_VALUE_MIN		(MnOS4_VALUE_OFF)
+#define MnOS4_VALUE_MAX		(MnOS4_VALUE_NUM-1)
+#define MnOS4_VALUE_DEF		(MnOS4_VALUE_OFF)
 
 #if 0
 
@@ -305,11 +396,9 @@ typedef struct {
 
 // Parameter - Relay Item
 typedef struct {
-	U08 assign;			// Relay Act
-	U16 act;			// Relay Act
-	U16 stop;			// Relay Stop
-	U16 test;			// Relay Test
-
+	U08 assign[MnOUT_RLY_NUM];	// Relay Assign
+	U16 act[MnOUT_RLY_NUM];		// Relay Act
+	U16 stop[MnOUT_RLY_NUM];		// Relay Stop
 } MnOUT_rly;
 
 // Parameter - PCD Item
@@ -325,12 +414,19 @@ typedef struct {
 	U08 outp;			// Output Type (Fail-Safe Hold Time)
 } MnOUT_err;
 
+// Parameter - External Input Item
+typedef struct {
+	U08 enable[MnOS4_EXT_INPUT_NUM];	// OFF / ON
+	U08 target[MnOS4_EXT_INPUT_NUM];	// CH1 / CH2 / ALL
+} MnOUT_ext;
+
 // Parameter - Sub-Section
 typedef struct {
 	MnOUT_cur mCurPr;
 	MnOUT_rly mRlyPr;
 	MnOUT_pcd mPcdPr;
 	MnOUT_err mErrPr;
+	MnOUT_ext mExtPr;
 	
 	U08 lyr;
 } MnOUT_LS;
@@ -358,6 +454,7 @@ extern S32 MnOUT_CurPrGet_CH_Value(U08 ch,U08 iIt);
 extern S32 MnOUT_RlyPrGet_Value(U08 iIt);
 extern S32 MnOUT_PcdPrGet_Value(U08 iIt);
 extern S32 MnOUT_ErrPrGet_Value(U08 iIt);
+extern S32 MnOUT_ExtPrGet_Value(U08 iIt);
 //------------------------------------------------------------------------------------------------------------------------------
 //  Extern global APIs - Parameters - Set
 //------------------------------------------------------------------------------------------------------------------------------
@@ -365,6 +462,7 @@ extern void MnOUT_CurPrSet_Value(U08 iIt, S32 val);
 extern void MnOUT_RlyPrSet_Value(U08 iIt, S32 val);
 extern void MnOUT_PcdPrSet_Value(U08 iIt, S32 val);
 extern void MnOUT_ErrPrSet_Value(U08 iIt, S32 val);
+extern void MnOUT_ExtPrSet_Value(U08 iIt, S32 val);
 extern void MnOUT_CurPrSet_Ch_Value(U08 ch,U08 iIt, S32 val);
 
 extern void MnOUT_PrRst_Factory(void);

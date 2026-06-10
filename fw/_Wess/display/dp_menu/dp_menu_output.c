@@ -625,6 +625,71 @@ void DpOutCur_PopUpdat(void)
 }
 
 // Popup - Relay
+static void DpOutRly_GetAssignStr(S32 val, U08 lang, I08 *pStr)
+{
+	U08 fValid = _F_T;
+
+	switch(lang)
+	{
+		case MnSYS_LANG_KOR:
+			if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
+			{
+				switch(val)
+				{
+					case MnOS1_ASSIGN_CH1_LIGHT:	DpSTR_GuiList(TEXT_LIST_CH1_LIGHT);	break;
+					case MnOS1_ASSIGN_CH1_HEAVY:	DpSTR_GuiList(TEXT_LIST_CH1_HEAVY);	break;
+					case MnOS1_ASSIGN_CH2_LIGHT:	DpSTR_GuiList(TEXT_LIST_CH2_LIGHT);	break;
+					case MnOS1_ASSIGN_CH2_HEAVY:	DpSTR_GuiList(TEXT_LIST_CH2_HEAVY);	break;
+					default:					fValid = _F_F;				break;
+				}
+			}
+			else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
+			{
+				switch(val)
+				{
+					case MnOS1_ASSIGN_CH1_LIGHT:	DpSTR_GuiList(TEXT_LIST_LIGHT);	break;
+					case MnOS1_ASSIGN_CH1_HEAVY:	DpSTR_GuiList(TEXT_LIST_HEAVY);	break;
+					default:					fValid = _F_F;				break;
+				}
+			}
+			else
+			{
+				fValid = _F_F;
+			}
+
+			if(fValid)	_SPRINTF(pStr, gDpStr.Text_list);
+			else		_SPRINTF(pStr, _sNG);
+			break;
+		case MnSYS_LANG_ENG:
+		default:
+			if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
+			{
+				switch(val)
+				{
+					case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(pStr, _sCH1_Light);	break;
+					case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(pStr, _sCH1_Heavy);	break;
+					case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(pStr, _sCH2_Light);	break;
+					case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(pStr, _sCH2_Heavy);	break;
+					default:					_SPRINTF(pStr, _sNG);		break;
+				}
+			}
+			else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
+			{
+				switch(val)
+				{
+					case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(pStr, _sLight);	break;
+					case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(pStr, _sHeavy);	break;
+					default:					_SPRINTF(pStr, _sNG);	break;
+				}
+			}
+			else
+			{
+				_SPRINTF(pStr, _sNG);
+			}
+			break;
+	}
+}
+
 void DpOutRly_PopIntro(void)
 {
 	U08 iIt = MnLY2_GetIdxItem();
@@ -632,149 +697,63 @@ void DpOutRly_PopIntro(void)
 	S32 val = MnOUT_RlyPrGet_Value(iIt);
 	S32 min= MENU_VAL_INVALID, max= MENU_VAL_INVALID;
 	U08 lang  = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+	U08 rly_item = MnOS1_OPT_RLY_ITEM(iIt);
 
-
-	switch(lang)
-	{
-		case MnSYS_LANG_KOR:
-			_SPRINTF(lDpOut.pStr, lDpOut.sIt1[iIt]);	
-			break;
-		case MnSYS_LANG_ENG:
-			switch(iIt)
-			{
-				case MnOS1_OPT_ASSIGN:	_SPRINTF(lDpOut.pStr, _sASSIGN);	break;
-				case MnOS1_OPT_ACT:		_SPRINTF(lDpOut.pStr, _sACT);		break;
-				case MnOS1_OPT_STOP:	_SPRINTF(lDpOut.pStr, _sSTOP);		break;
-				case MnOS1_OPT_TEST:	_SPRINTF(lDpOut.pStr, _sTEST);		break;
-				default:				_SPRINTF(lDpOut.pStr, _sNG);		break;
-			}
-			break;
-	}
-
+	if(iIt < MnOS1_OPT_NUM)	_SPRINTF(lDpOut.pStr, lDpOut.sIt1[iIt]);
+	else					_SPRINTF(lDpOut.pStr, _sNG);
 
 	DpPOP_UdtTitle(lDpOut.pStr);
 
 	//old Value	
-	switch(iIt)
+	if(iIt == MnOS1_OPT_TEST)
 	{
-		case MnOS1_OPT_ASSIGN:
-			fDp = _F_F;
-			switch(lang)
-			{
-				case MnSYS_LANG_KOR:		
-					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT: 	 DpSTR_GuiList(TEXT_LIST_CH1_LIGHT);		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	 DpSTR_GuiList(TEXT_LIST_CH2_HEAVY);		break;
-							case MnOS1_ASSIGN_CH2_LIGHT: 	 DpSTR_GuiList(TEXT_LIST_CH1_LIGHT);		break;
-							case MnOS1_ASSIGN_CH2_HEAVY:	 DpSTR_GuiList(TEXT_LIST_CH2_HEAVY);		break;
-							default:						break;
-						}				
-					}
-					else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	 DpSTR_GuiList(TEXT_LIST_LIGHT);		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	 DpSTR_GuiList(TEXT_LIST_HEAVY);		break;
-							default:						break;
-						}	
-					}
+		fDp = _F_F;
+	}
+	else
+	{
+		switch(rly_item)
+		{
+			case MnOS1_RLY_ITEM_ASSIGN:
+				DpOutRly_GetAssignStr(val, lang, lDpOut.pStr);
+				if(lang == MnSYS_LANG_KOR)
+				{
+					fDp = _F_F;
 					DpSTR_GuiLeft(DpPOP_MIN_X0-40, DpPOP_OLD_Y0+3, _cPOP_ST_VAL_IDL, _cPOP_BG_WND, _fE17HsB, _sNOW_);
-					DpSTR_GuiLeft_KOR(DpPOP_OLD_X0-40, DpPOP_OLD_Y0,	_cPOP_ST_OLD,	  _cPOP_BG_WND, _fE22HsBKOR,  gDpStr.Text_list);
-					break;
-				case MnSYS_LANG_ENG:
-					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH1_Light); 		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH1_Heavy); 		break;
-							case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH2_Light); 		break;
-							case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH2_Heavy);			break;
-							default:						_SPRINTF(lDpOut.pStr, _sNG);				break;
-						}		
-					}
-					else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.pStr, _sLight); 		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.pStr, _sHeavy); 		break;
-							default:						_SPRINTF(lDpOut.pStr, _sNG);				break;
-						}		
-					}
-					break;
-			}
-			break;
-		case MnOS1_OPT_ACT:	
-		case MnOS1_OPT_STOP:			_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(val/100), (U16)(val%100));	break;	 
-		case MnOS1_OPT_TEST:			fDp = _F_F;															break;	
-		default:						_SPRINTF(lDpOut.pStr, _sNG);										break;
+					DpSTR_GuiLeft_KOR(DpPOP_OLD_X0-40, DpPOP_OLD_Y0,	_cPOP_ST_OLD,	  _cPOP_BG_WND, _fE22HsBKOR,  lDpOut.pStr);
+				}
+				break;
+			case MnOS1_RLY_ITEM_ACT:	
+			case MnOS1_RLY_ITEM_STOP:		_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(val/100), (U16)(val%100));	break;	 
+			default:						_SPRINTF(lDpOut.pStr, _sNG);		break;
+		}
 	}	
 
 	if(fDp)		DpPOP_UdtOldVl(lDpOut.pStr);
 	fDp = _F_T;
 
 	// Range (Min. / Max.)
-	switch(iIt)
+	if(iIt == MnOS1_OPT_TEST)
 	{
-		case MnOS1_OPT_ASSIGN:		min = MnOS1_ASSIGN_MIN; max = MnOS1_ASSIGN_MAX;			break;
-		case MnOS1_OPT_ACT:			min = MnOS1_ACT_MIN;	max = MnOS1_ACT_MAX;			break;
-		case MnOS1_OPT_STOP:		min = MnOS1_STOP_MIN;	max = MnOS1_STOP_MAX;			break;
-		case MnOS1_OPT_TEST:		min = MnOS1_TEST_MIN;	max = MnOS1_TEST_MAX;			break;
-		default:																			break;
+		min = MnOS1_TEST_MIN;	max = MnOS1_TEST_MAX;
+	}
+	else
+	{
+		switch(rly_item)
+		{
+			case MnOS1_RLY_ITEM_ASSIGN:	fDp = _F_F;									break;
+			case MnOS1_RLY_ITEM_ACT:		min = MnOS1_ACT_MIN;	max = MnOS1_ACT_MAX;		break;
+			case MnOS1_RLY_ITEM_STOP:		min = MnOS1_STOP_MIN;	max = MnOS1_STOP_MAX;	break;
+			default:						fDp = _F_F;						break;
+		}
 	}
 
-
-	switch(iIt)
+	if(fDp)
 	{
-		case MnOS1_OPT_ASSIGN:
-			fDp = _F_F;
-			switch(min)
-			{
-				case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH1_Light); 		break;
-				case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH1_Heavy); 		break;
-				case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH2_Light); 		break;
-				case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH2_Heavy);			break;
-				default:						_SPRINTF(lDpOut.pStr, _sNG);				break;
-			}
-			break;
-		case MnOS1_OPT_ACT:			
-		case MnOS1_OPT_STOP:			
-		case MnOS1_OPT_TEST:			_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(min/100), (U16)(min%100));	break;
-		default:																							break;
+		_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(min/100), (U16)(min%100));
+		DpPOP_UdtRangeMin(lDpOut.pStr);
+		_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(max/100), (U16)(max%100));
+		DpPOP_UdtRangeMax(lDpOut.pStr);
 	}
-
-	if(fDp)		DpPOP_UdtRangeMin(lDpOut.pStr);
-
-	fDp = _F_T;
-
-	switch(iIt)
-	{
-		case MnOS1_OPT_ASSIGN:
-			fDp = _F_F;
-			switch(max)
-			{
-				case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH1_Light); 		break;
-				case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH1_Heavy); 		break;
-				case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(lDpOut.pStr, _sCH2_Light); 		break;
-				case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(lDpOut.pStr, _sCH2_Heavy);			break;
-				default:						_SPRINTF(lDpOut.pStr, _sNG);				break;
-			}
-			break;
-		case MnOS1_OPT_ACT:			
-		case MnOS1_OPT_STOP:			
-		case MnOS1_OPT_TEST:			_SPRINTF(lDpOut.pStr, "%2d.%02d m", (U16)(max/100), (U16)(max%100));	break;
-		default:																							break;
-	}
-
-
-	if(fDp)		DpPOP_UdtRangeMax(lDpOut.pStr);
-
-	fDp = _F_T;
 
 	_SPRINTF(lDpOut.pStr, _sSel_PsSet);
 
@@ -788,72 +767,37 @@ void DpOutRly_PopUpdat(void)
 	U16 y0 = DpPOP_CT1_Y0;
 	U16 y1 = DpPOP_CT2_Y0;
 	U32 cBg = _cPOP_BG_WND;
-	I08 pSt0[16] = {0, };
+	I08 pSt0[32] = {0, };
 	U08 iIt = MnLY2_GetIdxItem();
 	S32 dig = MnLY3_GetUpdnDig();
 	S32 updn_mod = MnLY3_GetUpdnMod();
 	S32 max  = MnLY3_GetMax();
 	U08 lang  = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+	U08 rly_item = MnOS1_OPT_RLY_ITEM(iIt);
 
 	DpFIG_DrwRect(x0, y0, 200, 30, cBg, DpFIG_FILL);
 	DpFIG_DrwRect(x0, y1, 200, 30, cBg, DpFIG_FILL);
 
-	switch(iIt)
+	if(iIt == MnOS1_OPT_TEST)
 	{
-		case MnOS1_OPT_ASSIGN:
-			switch(lang)
-			{
-				case MnSYS_LANG_KOR:		
-					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT: 	 DpSTR_GuiList(TEXT_LIST_CH1_LIGHT);									break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	 DpSTR_GuiList(TEXT_LIST_CH1_HEAVY);									break;
-							case MnOS1_ASSIGN_CH2_LIGHT: 	 DpSTR_GuiList(TEXT_LIST_CH2_LIGHT);									break;
-							case MnOS1_ASSIGN_CH2_HEAVY:	 DpSTR_GuiList(TEXT_LIST_CH2_HEAVY);									break;
-							default:						break;
-						}	
-					}
-					else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	 DpSTR_GuiList(TEXT_LIST_LIGHT);									break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	 DpSTR_GuiList(TEXT_LIST_HEAVY);									break;
-							default:						break;
-						}	
-					}
-					DpSTR_GuiLeft_KOR(x0, y0, _cPOP_ST_VAL_SEL, cBg, _fE22HsBKOR, gDpStr.Text_list);
+		_SPRINTF(pSt0, "%02d.%02d", val/100, val%100);
+	}
+	else
+	{
+		switch(rly_item)
+		{
+			case MnOS1_RLY_ITEM_ASSIGN:
+				DpOutRly_GetAssignStr(val, lang, pSt0);
+				if(lang == MnSYS_LANG_KOR)
+				{
+					DpSTR_GuiLeft_KOR(x0, y0, _cPOP_ST_VAL_SEL, cBg, _fE22HsBKOR, pSt0);
 					return;
-				case MnSYS_LANG_ENG:
-					if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(pSt0, _sCH1_Light); 		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(pSt0, _sCH1_Heavy); 		break;
-							case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(pSt0, _sCH2_Light); 		break;
-							case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(pSt0, _sCH2_Heavy);			break;
-							default:						_SPRINTF(pSt0, _sNG);				break;
-						}		
-					}
-					else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
-					{
-						switch(val)
-						{
-							case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(pSt0, _sLight); 		break;
-							case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(pSt0, _sHeavy); 		break;
-							default:						_SPRINTF(pSt0, _sNG);				break;
-						}		
-					}
-					break;
-			}
-			break;
-		case MnOS1_OPT_ACT:
-		case MnOS1_OPT_STOP:
-		case MnOS1_OPT_TEST:	_SPRINTF(pSt0, "%02d.%02d", val/100, val%100);	break;
-		default:				_SPRINTF(pSt0, _sNG);							break;
+				}
+				break;
+			case MnOS1_RLY_ITEM_ACT:
+			case MnOS1_RLY_ITEM_STOP:	_SPRINTF(pSt0, "%02d.%02d", val/100, val%100);	break;
+			default:					_SPRINTF(pSt0, _sNG);					break;
+		}
 	}
 	
 	switch(updn_mod)
@@ -1236,6 +1180,55 @@ void DpOutErr_PopUpdat(void)
 
 }
 
+void DpOutExt_GetValueStr(U08 iIt, S32 val, I08 *pStr)
+{
+	if((iIt != MnOS4_OPT_EXT1) && (iIt != MnOS4_OPT_EXT2))
+	{
+		_SPRINTF(pStr, _sNG);
+		return;
+	}
+
+	switch(val)
+	{
+		case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
+		case MnOS4_VALUE_CH1:	_SPRINTF(pStr, "CH1");	break;
+		case MnOS4_VALUE_CH2:	_SPRINTF(pStr, "CH2");	break;
+		case MnOS4_VALUE_ALL:	_SPRINTF(pStr, "ALL");	break;
+		default:				_SPRINTF(pStr, _sNG);	break;
+	}
+}
+
+void DpOutExt_PopIntro(void)
+{
+	U08 iIt = MnLY2_GetIdxItem();
+	S32 val = MnOUT_ExtPrGet_Value(iIt);
+
+	if(iIt < MnOS4_OPT_NUM)
+		DpPOP_UdtTitle(lDpOut.sIt4[iIt]);
+	else
+		DpPOP_UdtTitle(_sNG);
+
+	DpOutExt_GetValueStr(iIt, val, lDpOut.pStr);
+	DpPOP_UdtOldVl(lDpOut.pStr);
+
+	_SPRINTF(lDpOut.pStr, _sSel_PsSet);
+	//DpPOP_UdtExpla(lDpOut.pStr);
+}
+
+void DpOutExt_PopUpdat(void)
+{
+	U16 x0 = DpPOP_CT1_X0;
+	U16 y0 = DpPOP_CT1_Y0;
+	U32 cBg = _cPOP_BG_WND;
+	I08 pSt0[16] = {0, };
+	U08 iIt = MnLY2_GetIdxItem();
+	S32 val = MnLY3_GetValue();
+
+	DpFIG_DrwRect(x0, y0, 200, 30, cBg, DpFIG_FILL);
+	DpOutExt_GetValueStr(iIt, val, pSt0);
+	DpSTR_GuiLeft(x0, y0, _cPOP_ST_VAL_SEL, cBg, _fE22HsB, pSt0);
+}
+
 //------------------------------------------------------------------------------------------------------------------------------
 //  Global APIs - Access Local Variables
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1249,6 +1242,8 @@ I08* DpOUT_GetAddrIt2(U08 idx)		{	return lDpOut.sIt2[idx];	}
 I08* DpOUT_GetAddrVl2(U08 idx)		{	return lDpOut.sVl2[idx];	}
 I08* DpOUT_GetAddrIt3(U08 idx)		{	return lDpOut.sIt3[idx];	}
 I08* DpOUT_GetAddrVl3(U08 idx)		{	return lDpOut.sVl3[idx];	}
+I08* DpOUT_GetAddrIt4(U08 idx)		{	return lDpOut.sIt4[idx];	}
+I08* DpOUT_GetAddrVl4(U08 idx)		{	return lDpOut.sVl4[idx];	}
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1278,6 +1273,7 @@ void DpOUT_PopUpdat(void)
 		case MnOUT_SUB_RELAY:		DpOutRly_PopUpdat();	break;
 		case MnOUT_SUB_CLEAN:			DpOutPcd_PopUpdat();break;
 		case MnOUT_SUB_ERROR:		DpOutErr_PopUpdat();	break;
+		case MnOUT_SUB_EXT_INPUT:	DpOutExt_PopUpdat();	break;
 		default:
 			break;		
 	}
@@ -1293,6 +1289,7 @@ void DpOUT_PopIntro(void)
 		case MnOUT_SUB_RELAY:		DpOutRly_PopIntro();	break;
 		case MnOUT_SUB_CLEAN:		DpOutPcd_PopIntro();	break;
 		case MnOUT_SUB_ERROR:		DpOutErr_PopIntro();	break;
+		case MnOUT_SUB_EXT_INPUT:	DpOutExt_PopIntro();	break;
 		default:
 			break;
 	}
@@ -1308,6 +1305,8 @@ void DpOUT_InitVari(void)
 {
 	S32 val = 0;
 	U08 lang =MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+	U08 rly;
+	U08 assign_it;
 
 	switch(lang)
 	{
@@ -1316,6 +1315,7 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_RELAY],   _sRelay);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_CLEAN],     _sPCD);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_ERROR],   _sErr);
+			_SPRINTF(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], "EXT INPUT");
 
 			// Item (S0 - Current)
 			// Page #0 (CH0)
@@ -1345,10 +1345,13 @@ void DpOUT_InitVari(void)
 				_SPRINTF(lDpOut.sIt0[MnOS0_OPT_SINGLE_OUT_04mA], "Output  4mA");
 			}
 			// Item (S1 - Relay)
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_ASSIGN], _sAssign);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_ACT],	_sAct);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_STOP],   _sStop);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST],   _sTest);
+			for(rly=0; rly<MnOUT_RLY_NUM; rly++)
+			{
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_ASSIGN(rly)], "R%d Assign", (U16)(rly+1));
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_ACT(rly)],    "R%d ACT",    (U16)(rly+1));
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_STOP(rly)],   "R%d STOP",   (U16)(rly+1));
+			}
+			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST], "TEST");
 			// Item (S2 - PCD)
 			_SPRINTF(lDpOut.sIt2[MnOS2_OPT_MODE], _sMode);
 			_SPRINTF(lDpOut.sIt2[MnOS2_OPT_INTV], _sIntv);
@@ -1356,6 +1359,9 @@ void DpOUT_InitVari(void)
 			// Item (S3 - Error)
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_DELAY], _sErr_Delay);
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_OUTP], _sErr_Output);		
+			// Item (S4 - External Input)
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
 			break;
 		case MnSYS_LANG_KOR:
 			DpSTR_GuiList(TEXT_LIST_CURRENT_MENU);
@@ -1366,6 +1372,7 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_CLEAN],      gDpStr.Text_list);
 			DpSTR_GuiList(TEXT_LIST_ERROR);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_ERROR],    gDpStr.Text_list);
+			_SPRINTF(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], "EXT INPUT");
 
 			// Item (S0 - Current)
 			// Page #0 (CH0)
@@ -1397,15 +1404,14 @@ void DpOUT_InitVari(void)
 				_SPRINTF(lDpOut.sIt0[MnOS0_OPT_SINGLE_TRM_20mA], "Trim		20mA");
 				_SPRINTF(lDpOut.sIt0[MnOS0_OPT_SINGLE_OUT_04mA], "Output	4mA");
 			}
-				// Item (S1 - Relay)
-			DpSTR_GuiList(TEXT_LIST_ASSIGN);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);
-			DpSTR_GuiList(TEXT_LIST_ACT);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_ACT],	gDpStr.Text_list);
-			DpSTR_GuiList(TEXT_LIST_STOP);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_STOP],   gDpStr.Text_list);
-			DpSTR_GuiList(TEXT_LIST_TEST_MENU);
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST],   gDpStr.Text_list);
+			// Item (S1 - Relay)
+			for(rly=0; rly<MnOUT_RLY_NUM; rly++)
+			{
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_ASSIGN(rly)], "R%d Assign", (U16)(rly+1));
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_ACT(rly)],    "R%d ACT",    (U16)(rly+1));
+				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_STOP(rly)],   "R%d STOP",   (U16)(rly+1));
+			}
+			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST], "TEST");
 			// Item (S2 - PCD)
 			DpSTR_GuiList(TEXT_LIST_MODE);
 			_SPRINTF(lDpOut.sIt2[MnOS2_OPT_MODE], gDpStr.Text_list);
@@ -1418,6 +1424,9 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_DELAY], gDpStr.Text_list);
 			DpSTR_GuiList(TEXT_LIST_ERROR_OUTPUT);
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_OUTP], gDpStr.Text_list);
+			// Item (S4 - External Input)
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
 			break;
 
 	}
@@ -1499,58 +1508,17 @@ void DpOUT_InitVari(void)
 	val = MnOUT_CurPrGet_Value(MnOS0_OPT_CH2_TRM_20mA);		_SPRINTF(lDpOut.sVl0[MnOS0_OPT_CH2_TRM_20mA], " %d", val);
 
 	// Value (S1 - Relay)
-	if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
+	for(rly=0; rly<MnOUT_RLY_NUM; rly++)
 	{
-		switch(lang)
-		{
-			case MnSYS_LANG_KOR:	
-				switch(MnOUT_RlyPrGet_Value(MnOS1_OPT_ASSIGN))
-				{
-					case MnOS1_ASSIGN_CH1_LIGHT:	DpSTR_GuiList(TEXT_LIST_CH1_LIGHT);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					case MnOS1_ASSIGN_CH1_HEAVY:	DpSTR_GuiList(TEXT_LIST_CH1_HEAVY);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					case MnOS1_ASSIGN_CH2_LIGHT:	DpSTR_GuiList(TEXT_LIST_CH2_LIGHT);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					case MnOS1_ASSIGN_CH2_HEAVY:	DpSTR_GuiList(TEXT_LIST_CH2_HEAVY);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					default:						_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sNG);			break;
-				}
-				break;
-			case MnSYS_LANG_ENG:
-				switch(MnOUT_RlyPrGet_Value(MnOS1_OPT_ASSIGN))
-				{
-					case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sCH1_Light);	break;
-					case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sCH1_Heavy);	break;
-					case MnOS1_ASSIGN_CH2_LIGHT:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sCH2_Light);	break;
-					case MnOS1_ASSIGN_CH2_HEAVY:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sCH2_Heavy);	break;
-					default:						_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sNG);			break;
-				}			
-				break;
-		}
+		assign_it = MnOS1_OPT_RLY_ASSIGN(rly);
+		DpOutRly_GetAssignStr(MnOUT_RlyPrGet_Value(assign_it), lang, lDpOut.sVl1[assign_it]);
+
+		val = MnOUT_RlyPrGet_Value(MnOS1_OPT_RLY_ACT(rly));
+		_SPRINTF(lDpOut.sVl1[MnOS1_OPT_RLY_ACT(rly)],  "%2d.%02d m", (U16)(val/100), (U16)(val%100));
+		val = MnOUT_RlyPrGet_Value(MnOS1_OPT_RLY_STOP(rly));
+		_SPRINTF(lDpOut.sVl1[MnOS1_OPT_RLY_STOP(rly)], "%2d.%02d m", (U16)(val/100), (U16)(val%100));
 	}
-	else if(MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE)
-	{
-		switch(lang)
-		{
-			case MnSYS_LANG_KOR:	
-				switch(MnOUT_RlyPrGet_Value(MnOS1_OPT_ASSIGN))
-				{
-					case MnOS1_ASSIGN_CH1_LIGHT:	DpSTR_GuiList(TEXT_LIST_LIGHT); _SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					case MnOS1_ASSIGN_CH1_HEAVY:	DpSTR_GuiList(TEXT_LIST_HEAVY); _SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], gDpStr.Text_list);	break;
-					default:						_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sNG);			break;
-				}
-				break;
-			case MnSYS_LANG_ENG:
-				switch(MnOUT_RlyPrGet_Value(MnOS1_OPT_ASSIGN))
-				{
-					case MnOS1_ASSIGN_CH1_LIGHT:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sLight);	break;
-					case MnOS1_ASSIGN_CH1_HEAVY:	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sHeavy);	break;
-					default:						_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ASSIGN], _sNG);			break;
-				}			
-				break;
-		}
-	}
-	
-	val = MnOUT_RlyPrGet_Value(MnOS1_OPT_ACT);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_ACT],  "%2d.%02d m", (U16)(val/100), (U16)(val%100));
-	val = MnOUT_RlyPrGet_Value(MnOS1_OPT_STOP);	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_STOP], "%2d.%02d m", (U16)(val/100), (U16)(val%100));
-	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_TEST], 	"-");
+	_SPRINTF(lDpOut.sVl1[MnOS1_OPT_TEST], "-");
 	
 	// Value (S2 - PCD)
 	val = MnOUT_PcdPrGet_Value(MnOS2_OPT_MODE);	_SPRINTF(lDpOut.sVl2[MnOS2_OPT_MODE], " %d", (U16)val);
@@ -1577,6 +1545,10 @@ void DpOUT_InitVari(void)
 		case MnOS3_ERR_OUTPUT_21mA:	_SPRINTF(lDpOut.sVl3[MnOS3_OPT_ERR_OUTP], _s21_0mA);	break;
 		default:					_SPRINTF(lDpOut.sVl3[MnOS3_OPT_ERR_OUTP], _sNG);		break;
 	}
+
+	// Value (S4 - External Input)
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT1, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT1), lDpOut.sVl4[MnOS4_OPT_EXT1]);
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT2, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT2), lDpOut.sVl4[MnOS4_OPT_EXT2]);
 
 	_MEMSET(lDpOut.pStr, 0, sizeof(lDpOut.pStr));
 }
@@ -1733,7 +1705,7 @@ void DpOUT_StrCntts_Current(U08 idx,U08 i, U32 text_color, U32 back_color)
 
 void DpOUT_StrCntts(void)
 {
-	U08 i, n, page, iN, idx;
+	U08 i, n=0, page, iN, idx;
 	I08 *pItm, *pVal;
 	U08 iSb = MnLY1_GetSection();
 	U08 iIt = MnLY2_GetIdxItem();
@@ -1757,6 +1729,7 @@ void DpOUT_StrCntts(void)
 		case MnOUT_SUB_RELAY:		n = MnOS1_OPT_NUM;			break;
 		case MnOUT_SUB_CLEAN:		n = MnOS2_OPT_NUM;			break;
 		case MnOUT_SUB_ERROR:		n = MnOS3_OPT_NUM;			break;
+		case MnOUT_SUB_EXT_INPUT:	n = MnOS4_OPT_NUM;			break;
 		default:					return;
 	}
 
@@ -1806,6 +1779,7 @@ void DpOUT_StrCntts(void)
 					case MnOUT_SUB_RELAY:		pItm = lDpOut.sIt1[idx];	pVal = lDpOut.sVl1[idx];	break;
 					case MnOUT_SUB_CLEAN:		pItm = lDpOut.sIt2[idx];	pVal = lDpOut.sVl2[idx];	break;
 					case MnOUT_SUB_ERROR:		pItm = lDpOut.sIt3[idx];	pVal = lDpOut.sVl3[idx];	break;
+					case MnOUT_SUB_EXT_INPUT:	pItm = lDpOut.sIt4[idx];	pVal = lDpOut.sVl4[idx];	break;
 					default:					return;
 				}
 
@@ -1823,21 +1797,32 @@ void DpOUT_StrCntts(void)
 						break;
 					case MnOUT_SUB_RELAY:	
 						pItm = lDpOut.sIt1[idx];	pVal = lDpOut.sVl1[idx];
-						switch(idx)
+						if(idx == MnOS1_OPT_TEST)
 						{
-							case MnOS1_OPT_ASSIGN:
-								DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
-								DpSTR_GuiLeft_KOR(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsBKOR, pVal);			
-								break;
-							default:
-								DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
-								DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
-								break;
+							DpSTR_GuiLeft(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsB, pItm);
+							DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
+						}
+						else
+						{
+						DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
+						if(MnOS1_OPT_RLY_ITEM(idx) == MnOS1_RLY_ITEM_ASSIGN)
+						{
+							DpSTR_GuiLeft_KOR(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsBKOR, pVal);
+						}
+						else
+						{
+							DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
+						}
 						}
 						break;
 					case MnOUT_SUB_CLEAN:		
 						pItm = lDpOut.sIt2[idx];	pVal = lDpOut.sVl2[idx];	
 						DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
+						DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
+						break;
+					case MnOUT_SUB_EXT_INPUT:
+						pItm = lDpOut.sIt4[idx];	pVal = lDpOut.sVl4[idx];
+						DpSTR_GuiLeft(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsB, pItm);
 						DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
 						break;
 					case MnOUT_SUB_ERROR:		
