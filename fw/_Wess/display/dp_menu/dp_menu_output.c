@@ -1232,7 +1232,7 @@ void DpOutExt_GetListStr(U08 iIt, I08 *pStr)
 
 	target = MnOUT_ExtPrGet_Value(target_it);
 	DpOutExt_GetValueStr(target_it, target, pTarget);
-	_SPRINTF(pStr, "ON(%s)", pTarget);
+	_SPRINTF(pStr, "%s", pTarget);
 }
 
 void DpOutExt_PopIntro(void)
