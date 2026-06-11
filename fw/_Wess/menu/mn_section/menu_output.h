@@ -263,7 +263,6 @@ enum {
 enum {
 	MnOS4_TARGET_CH1 = 0,
 	MnOS4_TARGET_CH2,
-	MnOS4_TARGET_ALL,
 	// Number Max
 	MnOS4_TARGET_NUM,
 };
@@ -276,7 +275,6 @@ enum {
 	MnOS4_VALUE_OFF = 0,
 	MnOS4_VALUE_CH1,
 	MnOS4_VALUE_CH2,
-	MnOS4_VALUE_ALL,
 	// Number Max
 	MnOS4_VALUE_NUM,
 };
@@ -417,7 +415,7 @@ typedef struct {
 // Parameter - External Input Item
 typedef struct {
 	U08 enable[MnOS4_EXT_INPUT_NUM];	// OFF / ON
-	U08 target[MnOS4_EXT_INPUT_NUM];	// CH1 / CH2 / ALL
+	U08 target[MnOS4_EXT_INPUT_NUM];	// CH1 / CH2
 } MnOUT_ext;
 
 // Parameter - Sub-Section

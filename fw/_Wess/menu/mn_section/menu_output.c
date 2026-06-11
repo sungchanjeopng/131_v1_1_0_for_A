@@ -188,7 +188,6 @@ S32 MnOUT_ExtPrGet_Value(U08 iIt)
 	{
 		case MnOS4_TARGET_CH1:	return MnOS4_VALUE_CH1;
 		case MnOS4_TARGET_CH2:	return MnOS4_VALUE_CH2;
-		case MnOS4_TARGET_ALL:	return MnOS4_VALUE_ALL;
 		default:				return MENU_VAL_INVALID;
 	}
 }
@@ -372,10 +371,6 @@ void MnOUT_ExtPrSet_Value(U08 iIt, S32 val)
 		case MnOS4_VALUE_CH2:
 			lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_ON;
 			lMnOut.mExtPr.target[ext] = MnOS4_TARGET_CH2;
-			break;
-		case MnOS4_VALUE_ALL:
-			lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_ON;
-			lMnOut.mExtPr.target[ext] = MnOS4_TARGET_ALL;
 			break;
 		default:
 			return;

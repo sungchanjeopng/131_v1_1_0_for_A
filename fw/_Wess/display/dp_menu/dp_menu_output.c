@@ -1193,7 +1193,6 @@ void DpOutExt_GetValueStr(U08 iIt, S32 val, I08 *pStr)
 		case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
 		case MnOS4_VALUE_CH1:	_SPRINTF(pStr, "CH1");	break;
 		case MnOS4_VALUE_CH2:	_SPRINTF(pStr, "CH2");	break;
-		case MnOS4_VALUE_ALL:	_SPRINTF(pStr, "ALL");	break;
 		default:				_SPRINTF(pStr, _sNG);	break;
 	}
 }
