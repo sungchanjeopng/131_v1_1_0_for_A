@@ -235,12 +235,15 @@ enum {
 enum {
 	MnOS4_OPT_EXT1 = 0,
 	MnOS4_OPT_EXT2,
+	MnOS4_OPT_EXT1_TARGET,
+	MnOS4_OPT_EXT2_TARGET,
 	// Number Max
 	MnOS4_OPT_NUM,
 };
 
 #define MnOS4_OPT_MIN			(MnOS4_OPT_EXT1)
 #define MnOS4_OPT_MAX			(MnOS4_OPT_NUM-1)
+#define MnOS4_OPT_MENU_NUM		(MnOS4_OPT_EXT2+1)
 
 enum {
 	MnOS4_EXT_INPUT_1 = 0,
@@ -273,8 +276,7 @@ enum {
 
 enum {
 	MnOS4_VALUE_OFF = 0,
-	MnOS4_VALUE_CH1,
-	MnOS4_VALUE_CH2,
+	MnOS4_VALUE_ON,
 	// Number Max
 	MnOS4_VALUE_NUM,
 };

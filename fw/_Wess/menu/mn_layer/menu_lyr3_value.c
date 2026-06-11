@@ -249,7 +249,9 @@ void MnL3Itr_Sc1Outp(U08 iSb, U08 iIt)
 			switch(iIt)
 			{
 				case MnOS4_OPT_EXT1:
-				case MnOS4_OPT_EXT2:	lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
+				case MnOS4_OPT_EXT2:			lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
+				case MnOS4_OPT_EXT1_TARGET:
+				case MnOS4_OPT_EXT2_TARGET:	lMnLy3.min = MnOS4_TARGET_MIN;	lMnLy3.max = MnOS4_TARGET_MAX;	break;
 				default:				lMnLy3.val = MENU_VAL_INVALID;	break;
 			}
 			break;
@@ -1116,6 +1118,26 @@ void MnLy3Act_GotoLyr4(void)
 	MENU_SetLayer(MENU_L4_ADDITION);
 }
 
+static U08 MnLy3Out_ExtTargetItem(U08 iIt)
+{
+	switch(iIt)
+	{
+		case MnOS4_OPT_EXT1:	return MnOS4_OPT_EXT1_TARGET;
+		case MnOS4_OPT_EXT2:	return MnOS4_OPT_EXT2_TARGET;
+		default:				return MnOS4_OPT_NUM;
+	}
+}
+
+static U08 MnLy3Out_ExtParentItem(U08 iIt)
+{
+	switch(iIt)
+	{
+		case MnOS4_OPT_EXT1_TARGET:	return MnOS4_OPT_EXT1;
+		case MnOS4_OPT_EXT2_TARGET:	return MnOS4_OPT_EXT2;
+		default:					return iIt;
+	}
+}
+
 void MnLy2Act_EnterMsr(void)
 {
 	U08 iSb = MnLY1_GetSection();
@@ -1305,7 +1327,20 @@ void MnLy2Act_EnterOut(void)
 			switch(iIt)
 			{
 				case MnOS4_OPT_EXT1:
-				case MnOS4_OPT_EXT2:	MnLY3_GotoLyr2();	break;
+				case MnOS4_OPT_EXT2:
+					if(lMnLy3.val == MnOS4_VALUE_ON)
+					{
+						MnLY2_SetIdxItem(MnLy3Out_ExtTargetItem(iIt));
+						MnLY3_InitValue();
+						break;
+					}
+					MnLY3_GotoLyr2();
+					break;
+				case MnOS4_OPT_EXT1_TARGET:
+				case MnOS4_OPT_EXT2_TARGET:
+					MnLY2_SetIdxItem(MnLy3Out_ExtParentItem(iIt));
+					MnLY3_GotoLyr2();
+					break;
 				default:			break;
 			}
 			break;
@@ -1800,6 +1835,11 @@ void MnLY3_GotoLyr2(void)
 	U08 iSc = MENU_GetSection();
 	
 	lMnLy3.stt = MENU_S0_INTRO;
+
+	if((iSc == MENU_SC1_OUTP) && (MnLY1_GetSection() == MnOUT_SUB_EXT_INPUT))
+	{
+		MnLY2_SetIdxItem(MnLy3Out_ExtParentItem(MnLY2_GetIdxItem()));
+	}
 
 	DpM0_IntroSct();
 

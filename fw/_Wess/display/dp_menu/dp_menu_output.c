@@ -1182,19 +1182,57 @@ void DpOutErr_PopUpdat(void)
 
 void DpOutExt_GetValueStr(U08 iIt, S32 val, I08 *pStr)
 {
-	if((iIt != MnOS4_OPT_EXT1) && (iIt != MnOS4_OPT_EXT2))
+	switch(iIt)
 	{
-		_SPRINTF(pStr, _sNG);
+		case MnOS4_OPT_EXT1:
+		case MnOS4_OPT_EXT2:
+			switch(val)
+			{
+				case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
+				case MnOS4_VALUE_ON:	_SPRINTF(pStr, _sON);	break;
+				default:				_SPRINTF(pStr, _sNG);	break;
+			}
+			break;
+		case MnOS4_OPT_EXT1_TARGET:
+		case MnOS4_OPT_EXT2_TARGET:
+			switch(val)
+			{
+				case MnOS4_TARGET_CH1:	_SPRINTF(pStr, "CH1");	break;
+				case MnOS4_TARGET_CH2:	_SPRINTF(pStr, "CH2");	break;
+				default:				_SPRINTF(pStr, _sNG);	break;
+			}
+			break;
+		default:
+			_SPRINTF(pStr, _sNG);
+			break;
+	}
+}
+
+void DpOutExt_GetListStr(U08 iIt, I08 *pStr)
+{
+	U08 target_it;
+	S32 en = MnOUT_ExtPrGet_Value(iIt);
+	S32 target;
+	I08 pTarget[8] = {0, };
+
+	if(en != MnOS4_VALUE_ON)
+	{
+		DpOutExt_GetValueStr(iIt, en, pStr);
 		return;
 	}
 
-	switch(val)
+	switch(iIt)
 	{
-		case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
-		case MnOS4_VALUE_CH1:	_SPRINTF(pStr, "CH1");	break;
-		case MnOS4_VALUE_CH2:	_SPRINTF(pStr, "CH2");	break;
-		default:				_SPRINTF(pStr, _sNG);	break;
+		case MnOS4_OPT_EXT1:	target_it = MnOS4_OPT_EXT1_TARGET;	break;
+		case MnOS4_OPT_EXT2:	target_it = MnOS4_OPT_EXT2_TARGET;	break;
+		default:
+			_SPRINTF(pStr, _sNG);
+			return;
 	}
+
+	target = MnOUT_ExtPrGet_Value(target_it);
+	DpOutExt_GetValueStr(target_it, target, pTarget);
+	_SPRINTF(pStr, "ON(%s)", pTarget);
 }
 
 void DpOutExt_PopIntro(void)
@@ -1361,6 +1399,8 @@ void DpOUT_InitVari(void)
 			// Item (S4 - External Input)
 			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
 			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], "EXT IN1 CH");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], "EXT IN2 CH");
 			break;
 		case MnSYS_LANG_KOR:
 			DpSTR_GuiList(TEXT_LIST_CURRENT_MENU);
@@ -1426,6 +1466,8 @@ void DpOUT_InitVari(void)
 			// Item (S4 - External Input)
 			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
 			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], "EXT IN1 CH");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], "EXT IN2 CH");
 			break;
 
 	}
@@ -1546,8 +1588,10 @@ void DpOUT_InitVari(void)
 	}
 
 	// Value (S4 - External Input)
-	DpOutExt_GetValueStr(MnOS4_OPT_EXT1, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT1), lDpOut.sVl4[MnOS4_OPT_EXT1]);
-	DpOutExt_GetValueStr(MnOS4_OPT_EXT2, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT2), lDpOut.sVl4[MnOS4_OPT_EXT2]);
+	DpOutExt_GetListStr(MnOS4_OPT_EXT1, lDpOut.sVl4[MnOS4_OPT_EXT1]);
+	DpOutExt_GetListStr(MnOS4_OPT_EXT2, lDpOut.sVl4[MnOS4_OPT_EXT2]);
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT1_TARGET, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT1_TARGET), lDpOut.sVl4[MnOS4_OPT_EXT1_TARGET]);
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT2_TARGET, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT2_TARGET), lDpOut.sVl4[MnOS4_OPT_EXT2_TARGET]);
 
 	_MEMSET(lDpOut.pStr, 0, sizeof(lDpOut.pStr));
 }
@@ -1728,7 +1772,7 @@ void DpOUT_StrCntts(void)
 		case MnOUT_SUB_RELAY:		n = MnOS1_OPT_NUM;			break;
 		case MnOUT_SUB_CLEAN:		n = MnOS2_OPT_NUM;			break;
 		case MnOUT_SUB_ERROR:		n = MnOS3_OPT_NUM;			break;
-		case MnOUT_SUB_EXT_INPUT:	n = MnOS4_OPT_NUM;			break;
+		case MnOUT_SUB_EXT_INPUT:	n = MnOS4_OPT_MENU_NUM;		break;
 		default:					return;
 	}
 

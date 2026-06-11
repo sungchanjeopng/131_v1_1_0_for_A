@@ -69,6 +69,18 @@ static const U32 lMnOut_ExtTargetAddr[MnOS4_EXT_INPUT_NUM] = {
 	_mEXT_IN2_TARGET,
 };
 
+static U08 MnOUT_ExtGetIdx(U08 iIt, U08 *pExt)
+{
+	switch(iIt)
+	{
+		case MnOS4_OPT_EXT1:
+		case MnOS4_OPT_EXT1_TARGET:	*pExt = MnOS4_EXT_INPUT_1;	return TRUE;
+		case MnOS4_OPT_EXT2:
+		case MnOS4_OPT_EXT2_TARGET:	*pExt = MnOS4_EXT_INPUT_2;	return TRUE;
+		default:					return FALSE;
+	}
+}
+
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
 //------------------------------------------------------------------------------------------------------------------------------
@@ -174,20 +186,14 @@ S32 MnOUT_ExtPrGet_Value(U08 iIt)
 {
 	U08 ext;
 
+	if(MnOUT_ExtGetIdx(iIt, &ext) == FALSE)	return MENU_VAL_INVALID;
+
 	switch(iIt)
 	{
-		case MnOS4_OPT_EXT1:	ext = MnOS4_EXT_INPUT_1;	break;
-		case MnOS4_OPT_EXT2:	ext = MnOS4_EXT_INPUT_2;	break;
-		default:				return MENU_VAL_INVALID;
-	}
-
-	if(lMnOut.mExtPr.enable[ext] != MnOS4_ENABLE_ON)
-		return MnOS4_VALUE_OFF;
-
-	switch(lMnOut.mExtPr.target[ext])
-	{
-		case MnOS4_TARGET_CH1:	return MnOS4_VALUE_CH1;
-		case MnOS4_TARGET_CH2:	return MnOS4_VALUE_CH2;
+		case MnOS4_OPT_EXT1:
+		case MnOS4_OPT_EXT2:			return (lMnOut.mExtPr.enable[ext] == MnOS4_ENABLE_ON) ? MnOS4_VALUE_ON : MnOS4_VALUE_OFF;
+		case MnOS4_OPT_EXT1_TARGET:
+		case MnOS4_OPT_EXT2_TARGET:	return lMnOut.mExtPr.target[ext];
 		default:				return MENU_VAL_INVALID;
 	}
 }
@@ -352,32 +358,25 @@ void MnOUT_ExtPrSet_Value(U08 iIt, S32 val)
 {
 	U08 ext;
 
+	if(MnOUT_ExtGetIdx(iIt, &ext) == FALSE)	return;
+
 	switch(iIt)
 	{
-		case MnOS4_OPT_EXT1:	ext = MnOS4_EXT_INPUT_1;	break;
-		case MnOS4_OPT_EXT2:	ext = MnOS4_EXT_INPUT_2;	break;
-		default:				return;
-	}
-
-	switch(val)
-	{
-		case MnOS4_VALUE_OFF:
-			lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_OFF;
+		case MnOS4_OPT_EXT1:
+		case MnOS4_OPT_EXT2:
+			if((val < MnOS4_VALUE_MIN) || (val > MnOS4_VALUE_MAX))	return;
+			lMnOut.mExtPr.enable[ext] = (U08)val;
+			MRM_WrByte(lMnOut_ExtEnableAddr[ext], lMnOut.mExtPr.enable[ext]);
 			break;
-		case MnOS4_VALUE_CH1:
-			lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_ON;
-			lMnOut.mExtPr.target[ext] = MnOS4_TARGET_CH1;
-			break;
-		case MnOS4_VALUE_CH2:
-			lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_ON;
-			lMnOut.mExtPr.target[ext] = MnOS4_TARGET_CH2;
+		case MnOS4_OPT_EXT1_TARGET:
+		case MnOS4_OPT_EXT2_TARGET:
+			if((val < MnOS4_TARGET_MIN) || (val > MnOS4_TARGET_MAX))	return;
+			lMnOut.mExtPr.target[ext] = (U08)val;
+			MRM_WrByte(lMnOut_ExtTargetAddr[ext], lMnOut.mExtPr.target[ext]);
 			break;
 		default:
 			return;
 	}
-
-	MRM_WrByte(lMnOut_ExtEnableAddr[ext], lMnOut.mExtPr.enable[ext]);
-	MRM_WrByte(lMnOut_ExtTargetAddr[ext], lMnOut.mExtPr.target[ext]);
 }
 
 void MnOUT_PrRst_Factory(void)
