@@ -249,7 +249,9 @@ void MnL3Itr_Sc1Outp(U08 iSb, U08 iIt)
 			switch(iIt)
 			{
 				case MnOS4_OPT_EXT1:
-				case MnOS4_OPT_EXT2:			lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
+				case MnOS4_OPT_EXT2:
+				case MnOS4_OPT_EXT_OUT1:
+				case MnOS4_OPT_EXT_OUT2:		lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
 				case MnOS4_OPT_EXT1_TARGET:
 				case MnOS4_OPT_EXT2_TARGET:	lMnLy3.min = MnOS4_TARGET_MIN;	lMnLy3.max = MnOS4_TARGET_MAX;	break;
 				default:				lMnLy3.val = MENU_VAL_INVALID;	break;
@@ -547,15 +549,15 @@ void MnL3Itr_Sc6Test(U08 iIt)
 	{
 		case MnTST_OPT_HW_RX_AMP:			lMnLy3.min = MnTST_HW_RX_AMP_MIN;	lMnLy3.max = MnTST_HW_RX_AMP_MAX;	break;
 		case MnTST_OPT_CH1_SMOOTH_NO:		
-		case MnTST_OPT_CH2_SMOOTH_NO:		lMnLy3.min = MnTST_SMOOTH_NO_MIN;	lMnLy3.max = MnTST_SMOOTH_NO_MAX;	break;
+		case MnTST_OPT_CH2_SMOOTH_NO:		lMnLy3.min = MnTST_SMOOTH_NO_MIN;	lMnLy3.max = MnTST_SMOOTH_NO_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_CH1_SMOOTH_RANGE:	
-		case MnTST_OPT_CH2_SMOOTH_RANGE:	lMnLy3.min = MnTST_SMOOTH_RANGE_MIN;	lMnLy3.max = MnTST_SMOOTH_RANGE_MAX;	break;
+		case MnTST_OPT_CH2_SMOOTH_RANGE:	lMnLy3.min = MnTST_SMOOTH_RANGE_MIN;	lMnLy3.max = MnTST_SMOOTH_RANGE_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_CH1_THR_RANGE:		
 		case MnTST_OPT_CH2_THR_RANGE:		lMnLy3.min = MnTST_THR_RANGE_MIN;	lMnLy3.max = MnTST_THR_RANGE_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_CH1_THR_MIN:			
 		case MnTST_OPT_CH2_THR_MIN:			lMnLy3.min = MnTST_THR_MIN_MIN;	lMnLy3.max = MnTST_THR_MIN_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_CH1_PULSE_NO:		
-		case MnTST_OPT_CH2_PULSE_NO:		lMnLy3.min = MnTST_PULSE_NO_MIN;	lMnLy3.max = MnTST_PULSE_NO_MAX; 	break;
+		case MnTST_OPT_CH2_PULSE_NO:		lMnLy3.min = MnTST_PULSE_NO_MIN;	lMnLy3.max = MnTST_PULSE_NO_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_CH1_ECHO_AMP_B:		
 		case MnTST_OPT_CH2_ECHO_AMP_B:		lMnLy3.min = MnTST_ECHO_AMP_B_MIN;	lMnLy3.max = MnTST_ECHO_AMP_B_MAX;	lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
 		case MnTST_OPT_FILTER_RANGE:		lMnLy3.min = MnTST_FILTER_RANGE_MIN;	lMnLy3.max = MnTST_FILTER_RANGE_MAX; lMnLy3.updn_mod = MENU_V3_UPDN_DIG; break;
@@ -1090,22 +1092,9 @@ void MnL2Val_Sc5Fact(U08 iIt, U08 key)
 
 void MnL2Val_Sc6Test(U08 iIt, U08 key)
 {
-	if((iIt==MnTST_OPT_CH1_PULSE_NO) || (iIt==MnTST_OPT_CH2_PULSE_NO))
-	{
-		if(key == KEY_IDX_PREV)
-		{
-			lMnLy3.val-=10;
-			if(lMnLy3.val<=lMnLy3.min)	lMnLy3.val = lMnLy3.min;
-		}	
+	(void)iIt;
 
-		if(key == KEY_IDX_NEXT)
-		{
-			lMnLy3.val+=10;
-			if(lMnLy3.val>=lMnLy3.max)	lMnLy3.val = lMnLy3.max;
-		}			
-	}
-	else
-		MnL3Val_UpDn(key, lMnLy3.min, lMnLy3.max);
+	MnL3Val_UpDn(key, lMnLy3.min, lMnLy3.max);
 
 }
 
@@ -1336,6 +1325,10 @@ void MnLy2Act_EnterOut(void)
 					}
 					MnLY3_GotoLyr2();
 					break;
+				case MnOS4_OPT_EXT_OUT1:
+				case MnOS4_OPT_EXT_OUT2:
+					MnLY3_GotoLyr2();
+					break;
 				case MnOS4_OPT_EXT1_TARGET:
 				case MnOS4_OPT_EXT2_TARGET:
 					MnLY2_SetIdxItem(MnLy3Out_ExtParentItem(iIt));
@@ -1550,22 +1543,26 @@ void MnLy2Act_EnterFtr(void)
 void MnLy2Act_EnterTst(void)
 {
 	U08 iIt = MnLY2_GetIdxItem();
+
+	if(lMnLy3.updn_mod == MENU_V3_UPDN_DIG_VALUE)
+		return;
+
 	MnTST_PrSet_Value(lMnLy3.val);
 
 	switch(iIt)
 	{
 		case MnTST_OPT_HW_RX_AMP:				MnLY3_GotoLyr2();	break;
-		case MnTST_OPT_CH1_SMOOTH_NO:			MnLY3_GotoLyr2();	break;
-		case MnTST_OPT_CH1_SMOOTH_RANGE:		MnLY3_GotoLyr2();	break;
+		case MnTST_OPT_CH1_SMOOTH_NO:			break;
+		case MnTST_OPT_CH1_SMOOTH_RANGE:		break;
 		case MnTST_OPT_CH1_THR_RANGE:			break;
 		case MnTST_OPT_CH1_THR_MIN:				break;
-		case MnTST_OPT_CH1_PULSE_NO:			MnLY3_GotoLyr2();	break;
+		case MnTST_OPT_CH1_PULSE_NO:			break;
 		case MnTST_OPT_CH1_ECHO_AMP_B:			break;
-		case MnTST_OPT_CH2_SMOOTH_NO:			MnLY3_GotoLyr2();	break;
-		case MnTST_OPT_CH2_SMOOTH_RANGE:		MnLY3_GotoLyr2();	break;
+		case MnTST_OPT_CH2_SMOOTH_NO:			break;
+		case MnTST_OPT_CH2_SMOOTH_RANGE:		break;
 		case MnTST_OPT_CH2_THR_RANGE:			break;
 		case MnTST_OPT_CH2_THR_MIN:				break;
-		case MnTST_OPT_CH2_PULSE_NO:			MnLY3_GotoLyr2();	break;
+		case MnTST_OPT_CH2_PULSE_NO:			break;
 		case MnTST_OPT_CH2_ECHO_AMP_B:			break;
 		case MnTST_OPT_FILTER_RANGE:			break;
 		case MnTST_OPT_FILTER_TIME:				break;

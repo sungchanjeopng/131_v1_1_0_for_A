@@ -200,6 +200,7 @@ enum {
 	_mRELAY4_STOP_L,	_mRELAY4_STOP_H,
 	_mEXT_IN1_ENABLE,	_mEXT_IN1_TARGET,
 	_mEXT_IN2_ENABLE,	_mEXT_IN2_TARGET,
+	_mEXT_OUT1_ENABLE,	_mEXT_OUT2_ENABLE,
 	_mMENU_END			= 0x00FFF,
 
 	//--------------------------------------------------------------------------------------------------------------------------

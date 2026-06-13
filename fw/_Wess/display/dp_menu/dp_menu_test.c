@@ -69,6 +69,34 @@ void DpTST_AddIntro(void)
 //  Global APIs - Pop-Up
 //------------------------------------------------------------------------------------------------------------------------------
 #if 1
+static U08 DpTST_GetDigitCursor(U08 iIt, S32 dig, S32 max)
+{
+	switch(iIt)
+	{
+		case MnTST_OPT_CH1_THR_RANGE:
+		case MnTST_OPT_CH2_THR_RANGE:
+			if(dig >= 2)	return 0;
+			return (U08)(3-dig);
+
+		case MnTST_OPT_CH1_THR_MIN:
+		case MnTST_OPT_CH2_THR_MIN:
+			if(dig >= 1)	return 0;
+			return 2;
+
+		case MnTST_OPT_FILTER_RANGE:
+		case MnTST_OPT_SENSOR_DISTANCE:
+		case MnTST_OPT_CH1_HEAVY_HOLD:
+		case MnTST_OPT_CH1_LIGHT_HOLD:
+		case MnTST_OPT_CH2_HEAVY_HOLD:
+		case MnTST_OPT_CH2_LIGHT_HOLD:
+			if(dig >= 2)	return (U08)(3-dig);
+			return (U08)(4-dig);
+
+		default:
+			return (U08)log10(max)-dig;
+	}
+}
+
 void DpTST_PopUpdat(void)
 {
 	U16 x0 = DpPOP_CT1_X0;
@@ -101,13 +129,13 @@ void DpTST_PopUpdat(void)
 		case MnTST_OPT_CH1_SMOOTH_NO:		
 		case MnTST_OPT_CH2_SMOOTH_NO:			_SPRINTF(pSt0, "%d", val);									break;
 		case MnTST_OPT_CH1_SMOOTH_RANGE:	
-		case MnTST_OPT_CH2_SMOOTH_RANGE:		_SPRINTF(pSt0, "%d", val);									break;
+		case MnTST_OPT_CH2_SMOOTH_RANGE:		_SPRINTF(pSt0, "%02d", val);								break;
 		case MnTST_OPT_CH2_THR_RANGE:
 		case MnTST_OPT_CH1_THR_RANGE:			_SPRINTF(pSt0, "%01d.%02d", (U16)(val/100), (U16)(val%100));	break;
 		case MnTST_OPT_CH1_THR_MIN:				
 		case MnTST_OPT_CH2_THR_MIN:				_SPRINTF(pSt0, "%01d.%01d", val/10,val%10);					break;
 		case MnTST_OPT_CH1_PULSE_NO:			
-		case MnTST_OPT_CH2_PULSE_NO:			_SPRINTF(pSt0, "%d", val);	break;
+		case MnTST_OPT_CH2_PULSE_NO:			_SPRINTF(pSt0, "%03d", val);	break;
 		case MnTST_OPT_CH1_ECHO_AMP_B:			
 		case MnTST_OPT_CH2_ECHO_AMP_B:			_SPRINTF(pSt0, "%04d", val);	break;
 		case MnTST_OPT_FILTER_RANGE:			_SPRINTF(pSt0, "%02d.%02d", (U16)(val/100), (U16)(val%100));	break;
@@ -132,7 +160,7 @@ void DpTST_PopUpdat(void)
 	{
 		case MENU_V3_UPDN_IDLE:			DpSTR_GuiLeft(x0, y0, _cPOP_ST_VAL_SEL, cBg, _fE22HsB, pSt0);	break;
 		case MENU_V3_UPDN_DIG:
-		case MENU_V3_UPDN_DIG_VALUE:	DpSTR_GuiLeftCursor(x0, y0, _cPOP_ST_VAL_SEL, _cMNU_SEL_SCT, cBg, (U08)log10(max)-dig, _fE22HsB, pSt0);	break;
+		case MENU_V3_UPDN_DIG_VALUE:	DpSTR_GuiLeftCursor(x0, y0, _cPOP_ST_VAL_SEL, _cMNU_SEL_SCT, cBg, DpTST_GetDigitCursor(iIt, dig, max), _fE22HsB, pSt0);	break;
 		default:	break;
 	}
 

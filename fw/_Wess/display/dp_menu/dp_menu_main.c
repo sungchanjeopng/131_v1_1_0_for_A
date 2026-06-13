@@ -394,7 +394,11 @@ void DpM1_UpdatSub(void)
 					default:				return;
 				}
 			
-				DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(i+1)), col_st, _cTTB_BG_MID, _fE17HsBKOR, gDpStr.Text_list);
+				// EXT INPUT label uses local KOR byte string from Output display table
+				if((sct == MENU_SC1_OUTP) && (i == MnOUT_SUB_EXT_INPUT))
+					DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(i+1)), col_st, _cTTB_BG_MID, _fE17HsBKOR, DpOUT_GetAddrSct(i));
+				else
+					DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(i+1)), col_st, _cTTB_BG_MID, _fE17HsBKOR, gDpStr.Text_list);
 			}
 			
 			// Sub-section - String (Select)
@@ -438,7 +442,11 @@ void DpM1_UpdatSub(void)
 			}
 
 			DpFIG_DrwRect(box_x0+20, box_y0+(str_yg*(sub+1))+15, DpMNU_BOX_WID-50, 40, _cMNU_SEL_SUB, DpFIG_FILL);
-			DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(sub+1)),	 _cSD_DARKGRAY, _cMNU_SEL_SUB, _fE17HsBKOR, gDpStr.Text_list);
+			// EXT INPUT label uses local KOR byte string from Output display table
+			if((sct == MENU_SC1_OUTP) && (sub == MnOUT_SUB_EXT_INPUT))
+				DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(sub+1)),	 _cSD_DARKGRAY, _cMNU_SEL_SUB, _fE17HsBKOR, DpOUT_GetAddrSct(sub));
+			else
+				DpSTR_GuiLeft_KOR(str_x0+10, str_y0+(str_yg*(sub+1)),	 _cSD_DARKGRAY, _cMNU_SEL_SUB, _fE17HsBKOR, gDpStr.Text_list);
 			break;
 		case MnSYS_LANG_ENG:
 			// Sub-section - String (All)

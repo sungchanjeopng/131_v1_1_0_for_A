@@ -165,16 +165,14 @@ enum {
 };
 #define MnOS1_ASSIGN_MIN			(MnOS1_ASSIGN_CH1_LIGHT)
 #define MnOS1_ASSIGN_MAX			(MnOS1_ASSIGN_NUM-1)
-#define MnOS1_ASSIGN_DEF			(MnOS1_ASSIGN_CH1_HEAVY)
 
 // Value - Relay Item #1 (Act)
 #define MnOS1_ACT_MIN			(0)
 #define MnOS1_ACT_MAX			(1000)
-#define MnOS1_ACT_DEF			(900)
 // Value - Relay Item #2 (Stop)
 #define MnOS1_STOP_MIN			(0)
 #define MnOS1_STOP_MAX			(1000)
-#define MnOS1_STOP_DEF			(800)	// 10m
+// Defaults are per-relay: see lMnOut_Rly*Def[] tables in menu_output.c
 // Value - Factory Relay Test
 #define MnOS1_TEST_MIN			(0)
 #define MnOS1_TEST_MAX			(1000)
@@ -235,6 +233,8 @@ enum {
 enum {
 	MnOS4_OPT_EXT1 = 0,
 	MnOS4_OPT_EXT2,
+	MnOS4_OPT_EXT_OUT1,
+	MnOS4_OPT_EXT_OUT2,
 	MnOS4_OPT_EXT1_TARGET,
 	MnOS4_OPT_EXT2_TARGET,
 	// Number Max
@@ -243,13 +243,20 @@ enum {
 
 #define MnOS4_OPT_MIN			(MnOS4_OPT_EXT1)
 #define MnOS4_OPT_MAX			(MnOS4_OPT_NUM-1)
-#define MnOS4_OPT_MENU_NUM		(MnOS4_OPT_EXT2+1)
+#define MnOS4_OPT_MENU_NUM		(MnOS4_OPT_EXT_OUT2+1)
 
 enum {
 	MnOS4_EXT_INPUT_1 = 0,
 	MnOS4_EXT_INPUT_2,
 	// Number Max
 	MnOS4_EXT_INPUT_NUM,
+};
+
+enum {
+	MnOS4_EXT_OUTPUT_1 = 0,
+	MnOS4_EXT_OUTPUT_2,
+	// Number Max
+	MnOS4_EXT_OUTPUT_NUM,
 };
 
 enum {
@@ -418,6 +425,7 @@ typedef struct {
 typedef struct {
 	U08 enable[MnOS4_EXT_INPUT_NUM];	// OFF / ON
 	U08 target[MnOS4_EXT_INPUT_NUM];	// CH1 / CH2
+	U08 out_enable[MnOS4_EXT_OUTPUT_NUM];	// OFF / ON
 } MnOUT_ext;
 
 // Parameter - Sub-Section

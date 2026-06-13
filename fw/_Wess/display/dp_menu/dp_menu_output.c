@@ -46,6 +46,40 @@
 //------------------------------------------------------------------------------------------------------------------------------
 DpOUT_LS lDpOut;
 
+#define DpOUT_KOR_EXT_OE		(187)	// 외
+#define DpOUT_KOR_EXT_BU		(188)	// 부
+#define DpOUT_KOR_IP			(122)	// 입
+#define DpOUT_KOR_CHUL			(144)	// 출
+#define DpOUT_KOR_RYUK			(51)	// 력
+#define DpOUT_KOR_SPACE			(173)
+#define DpOUT_KOR_NUM_1			(2)
+#define DpOUT_KOR_NUM_2			(3)
+
+static void DpOutExt_CopyKorText(I08 *pDst, const U08 *pSrc)
+{
+	U08 i;
+
+	for(i=0; i<32; i++)	pDst[i] = 0;
+	for(i=0; (i<31) && (pSrc[i] != 0); i++)	pDst[i] = (I08)pSrc[i];
+}
+
+static void DpOutExt_SetKorLabels(void)
+{
+	static const U08 sExtInput[]  = {DpOUT_KOR_EXT_OE, DpOUT_KOR_EXT_BU, DpOUT_KOR_SPACE, DpOUT_KOR_IP,   DpOUT_KOR_RYUK, 0};
+	static const U08 sExtInput1[] = {DpOUT_KOR_EXT_OE, DpOUT_KOR_EXT_BU, DpOUT_KOR_SPACE, DpOUT_KOR_IP,   DpOUT_KOR_RYUK, DpOUT_KOR_SPACE, DpOUT_KOR_NUM_1, 0};
+	static const U08 sExtInput2[] = {DpOUT_KOR_EXT_OE, DpOUT_KOR_EXT_BU, DpOUT_KOR_SPACE, DpOUT_KOR_IP,   DpOUT_KOR_RYUK, DpOUT_KOR_SPACE, DpOUT_KOR_NUM_2, 0};
+	static const U08 sExtOut1[]   = {DpOUT_KOR_EXT_OE, DpOUT_KOR_EXT_BU, DpOUT_KOR_SPACE, DpOUT_KOR_CHUL, DpOUT_KOR_RYUK, DpOUT_KOR_SPACE, DpOUT_KOR_NUM_1, 0};
+	static const U08 sExtOut2[]   = {DpOUT_KOR_EXT_OE, DpOUT_KOR_EXT_BU, DpOUT_KOR_SPACE, DpOUT_KOR_CHUL, DpOUT_KOR_RYUK, DpOUT_KOR_SPACE, DpOUT_KOR_NUM_2, 0};
+
+	DpOutExt_CopyKorText(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], sExtInput);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT1], sExtInput1);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT2], sExtInput2);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT_OUT1], sExtOut1);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT_OUT2], sExtOut2);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], sExtInput1);
+	DpOutExt_CopyKorText(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], sExtInput2);
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
@@ -690,6 +724,46 @@ static void DpOutRly_GetAssignStr(S32 val, U08 lang, I08 *pStr)
 	}
 }
 
+static U08 DpOutRly_GetKorItemText(U08 idx)
+{
+	U08 rly_item;
+
+	if(idx == MnOS1_OPT_TEST)
+		return TEXT_LIST_TEST_MENU;
+
+	rly_item = MnOS1_OPT_RLY_ITEM(idx);
+	switch(rly_item)
+	{
+		case MnOS1_RLY_ITEM_ASSIGN:	return TEXT_LIST_ASSIGN;
+		case MnOS1_RLY_ITEM_ACT:		return TEXT_LIST_ACT;
+		case MnOS1_RLY_ITEM_STOP:	return TEXT_LIST_STOP;
+		default:						return TEXT_LIST_TEST_MENU;
+	}
+}
+
+static void DpOutRly_DrawKorItemLabel(U08 idx, U16 x0, U16 y0, U32 col_fw, U32 col_bg, sFONT ftEng, sFONT ftKor, U16 kor_x0)
+{
+	I08 sRly[8] = {0, };
+
+	if(idx == MnOS1_OPT_TEST)
+	{
+		DpSTR_GuiList(TEXT_LIST_TEST_MENU);
+		DpSTR_GuiLeft_KOR(x0, y0, col_fw, col_bg, ftKor, gDpStr.Text_list);
+		return;
+	}
+
+	if(idx >= MnOS1_OPT_TEST)
+	{
+		DpSTR_GuiLeft(x0, y0, col_fw, col_bg, ftEng, _sNG);
+		return;
+	}
+
+	_SPRINTF(sRly, "R%d", (U16)(MnOS1_OPT_RLY_IDX(idx)+1));
+	DpSTR_GuiLeft(x0, y0, col_fw, col_bg, ftEng, sRly);
+	DpSTR_GuiList(DpOutRly_GetKorItemText(idx));
+	DpSTR_GuiLeft_KOR(kor_x0, y0, col_fw, col_bg, ftKor, gDpStr.Text_list);
+}
+
 void DpOutRly_PopIntro(void)
 {
 	U08 iIt = MnLY2_GetIdxItem();
@@ -699,10 +773,24 @@ void DpOutRly_PopIntro(void)
 	U08 lang  = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
 	U08 rly_item = MnOS1_OPT_RLY_ITEM(iIt);
 
-	if(iIt < MnOS1_OPT_NUM)	_SPRINTF(lDpOut.pStr, lDpOut.sIt1[iIt]);
-	else					_SPRINTF(lDpOut.pStr, _sNG);
+	if(lang == MnSYS_LANG_KOR)
+	{
+		if(iIt < MnOS1_OPT_NUM)
+		{
+			DpOutRly_DrawKorItemLabel(iIt, DpPOP_TIT_X0, DpPOP_OLD_Y0, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, _fE22HsBKOR, DpPOP_TIT_X0+70);
+		}
+		else
+		{
+			DpSTR_GuiLeft(DpPOP_TIT_X0, DpPOP_OLD_Y0, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, _sNG);
+		}
+	}
+	else
+	{
+		if(iIt < MnOS1_OPT_NUM)	_SPRINTF(lDpOut.pStr, lDpOut.sIt1[iIt]);
+		else					_SPRINTF(lDpOut.pStr, _sNG);
 
-	DpPOP_UdtTitle(lDpOut.pStr);
+		DpPOP_UdtTitle(lDpOut.pStr);
+	}
 
 	//old Value	
 	if(iIt == MnOS1_OPT_TEST)
@@ -1186,6 +1274,8 @@ void DpOutExt_GetValueStr(U08 iIt, S32 val, I08 *pStr)
 	{
 		case MnOS4_OPT_EXT1:
 		case MnOS4_OPT_EXT2:
+		case MnOS4_OPT_EXT_OUT1:
+		case MnOS4_OPT_EXT_OUT2:
 			switch(val)
 			{
 				case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
@@ -1352,7 +1442,7 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_RELAY],   _sRelay);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_CLEAN],     _sPCD);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_ERROR],   _sErr);
-			_SPRINTF(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], "EXT INPUT");
+			_SPRINTF(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], "External Input");
 
 			// Item (S0 - Current)
 			// Page #0 (CH0)
@@ -1397,10 +1487,12 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_DELAY], _sErr_Delay);
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_OUTP], _sErr_Output);		
 			// Item (S4 - External Input)
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], "EXT IN1 CH");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], "EXT IN2 CH");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "External Input 1");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "External Input 2");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT_OUT1], "External Output 1");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT_OUT2], "External Output 2");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], "External Input 1 CH");
+			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], "External Input 2 CH");
 			break;
 		case MnSYS_LANG_KOR:
 			DpSTR_GuiList(TEXT_LIST_CURRENT_MENU);
@@ -1411,8 +1503,6 @@ void DpOUT_InitVari(void)
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_CLEAN],      gDpStr.Text_list);
 			DpSTR_GuiList(TEXT_LIST_ERROR);
 			_SPRINTF(lDpOut.sSct[MnOUT_SUB_ERROR],    gDpStr.Text_list);
-			_SPRINTF(lDpOut.sSct[MnOUT_SUB_EXT_INPUT], "EXT INPUT");
-
 			// Item (S0 - Current)
 			// Page #0 (CH0)
 			if(MnFTR_PrGet_SsChn()==MnFTR_SS_DUAL)
@@ -1450,7 +1540,8 @@ void DpOUT_InitVari(void)
 				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_ACT(rly)],    "R%d ACT",    (U16)(rly+1));
 				_SPRINTF(lDpOut.sIt1[MnOS1_OPT_RLY_STOP(rly)],   "R%d STOP",   (U16)(rly+1));
 			}
-			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST], "TEST");
+			DpSTR_GuiList(TEXT_LIST_TEST_MENU);
+			_SPRINTF(lDpOut.sIt1[MnOS1_OPT_TEST], gDpStr.Text_list);
 			// Item (S2 - PCD)
 			DpSTR_GuiList(TEXT_LIST_MODE);
 			_SPRINTF(lDpOut.sIt2[MnOS2_OPT_MODE], gDpStr.Text_list);
@@ -1464,10 +1555,7 @@ void DpOUT_InitVari(void)
 			DpSTR_GuiList(TEXT_LIST_ERROR_OUTPUT);
 			_SPRINTF(lDpOut.sIt3[MnOS3_OPT_ERR_OUTP], gDpStr.Text_list);
 			// Item (S4 - External Input)
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1], "EXT IN1");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2], "EXT IN2");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT1_TARGET], "EXT IN1 CH");
-			_SPRINTF(lDpOut.sIt4[MnOS4_OPT_EXT2_TARGET], "EXT IN2 CH");
+			DpOutExt_SetKorLabels();
 			break;
 
 	}
@@ -1590,6 +1678,8 @@ void DpOUT_InitVari(void)
 	// Value (S4 - External Input)
 	DpOutExt_GetListStr(MnOS4_OPT_EXT1, lDpOut.sVl4[MnOS4_OPT_EXT1]);
 	DpOutExt_GetListStr(MnOS4_OPT_EXT2, lDpOut.sVl4[MnOS4_OPT_EXT2]);
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT_OUT1, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT_OUT1), lDpOut.sVl4[MnOS4_OPT_EXT_OUT1]);
+	DpOutExt_GetValueStr(MnOS4_OPT_EXT_OUT2, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT_OUT2), lDpOut.sVl4[MnOS4_OPT_EXT_OUT2]);
 	DpOutExt_GetValueStr(MnOS4_OPT_EXT1_TARGET, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT1_TARGET), lDpOut.sVl4[MnOS4_OPT_EXT1_TARGET]);
 	DpOutExt_GetValueStr(MnOS4_OPT_EXT2_TARGET, MnOUT_ExtPrGet_Value(MnOS4_OPT_EXT2_TARGET), lDpOut.sVl4[MnOS4_OPT_EXT2_TARGET]);
 
@@ -1777,18 +1867,12 @@ void DpOUT_StrCntts(void)
 	}
 
 	// Calc. Page
-	if (iIt >= (DpMNU_ITM_PAGE*1))		page = DpMNU_PG_1;
-	else								page = DpMNU_PG_0;
+	if 		(iIt >= (DpMNU_ITM_PAGE*2))		page = DpMNU_PG_2;
+	else if (iIt >= (DpMNU_ITM_PAGE*1))		page = DpMNU_PG_1;
+	else									page = DpMNU_PG_0;
 
-	switch(page)
-	{
-		case DpMNU_PG_0:	
-			if(n>DpMNU_ITM_PAGE)		iN=DpMNU_ITM_PAGE;
-			else						iN=n;
-			break;
-		case DpMNU_PG_1:	iN = n-(DpMNU_ITM_PAGE*page);		break;
-		default:			return;
-	}
+	iN = n - (DpMNU_ITM_PAGE*page);
+	if(iN > DpMNU_ITM_PAGE)		iN = DpMNU_ITM_PAGE;
 
 	sel = (iIt%DpMNU_ITM_PAGE);
 
@@ -1839,23 +1923,19 @@ void DpOUT_StrCntts(void)
 						DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
 						break;
 					case MnOUT_SUB_RELAY:	
-						pItm = lDpOut.sIt1[idx];	pVal = lDpOut.sVl1[idx];
+						pVal = lDpOut.sVl1[idx];
+						DpOutRly_DrawKorItemLabel(idx, box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsB, _fE17HsBKOR, box_itm_x0+45);
 						if(idx == MnOS1_OPT_TEST)
 						{
-							DpSTR_GuiLeft(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsB, pItm);
 							DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
 						}
-						else
-						{
-						DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
-						if(MnOS1_OPT_RLY_ITEM(idx) == MnOS1_RLY_ITEM_ASSIGN)
+						else if(MnOS1_OPT_RLY_ITEM(idx) == MnOS1_RLY_ITEM_ASSIGN)
 						{
 							DpSTR_GuiLeft_KOR(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsBKOR, pVal);
 						}
 						else
 						{
 							DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
-						}
 						}
 						break;
 					case MnOUT_SUB_CLEAN:		
@@ -1865,7 +1945,7 @@ void DpOUT_StrCntts(void)
 						break;
 					case MnOUT_SUB_EXT_INPUT:
 						pItm = lDpOut.sIt4[idx];	pVal = lDpOut.sVl4[idx];
-						DpSTR_GuiLeft(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsB, pItm);
+						DpSTR_GuiLeft_KOR(box_itm_x0, str_y0+(str_yg*i), text_color, back_color, _fE17HsBKOR, pItm);
 						DpSTR_GuiLeft(box_val_x0, str_y0+(str_yg*i), _cMNU_STR_IDLE, _cMNU_BOX_BG, _fE17HsB, pVal);
 						break;
 					case MnOUT_SUB_ERROR:		

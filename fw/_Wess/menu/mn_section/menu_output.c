@@ -59,6 +59,35 @@ static const U32 lMnOut_RlyStopAddr[MnOUT_RLY_NUM] = {
 	_mRELAY4_STOP_L,
 };
 
+static const U08 lMnOut_RlyAssignDef[MnOUT_RLY_NUM] = {
+	MnOS1_ASSIGN_CH1_HEAVY,		// R1
+	MnOS1_ASSIGN_CH2_HEAVY,		// R2
+	MnOS1_ASSIGN_CH1_HEAVY,		// R3
+	MnOS1_ASSIGN_CH2_HEAVY,		// R4
+};
+
+static const U16 lMnOut_RlyActDef[MnOUT_RLY_NUM] = {
+	900,	// R1 - 9.00m
+	900,	// R2 - 9.00m
+	10,		// R3 - 0.10m
+	10,		// R4 - 0.10m
+};
+
+static const U16 lMnOut_RlyStopDef[MnOUT_RLY_NUM] = {
+	800,	// R1 - 8.00m
+	800,	// R2 - 8.00m
+	0,		// R3 - 0.00m
+	0,		// R4 - 0.00m
+};
+
+// Single channel model allows CH1 group only (CH2_x -> CH1_x, keep LIGHT/HEAVY)
+static U08 MnOUT_RlyAssignFit(U08 assign)
+{
+	if((MnFTR_PrGet_SsChn()==MnFTR_SS_SINGLE) && (assign >= MnOS1_ASSIGN_CH2_LIGHT) && (assign <= MnOS1_ASSIGN_MAX))
+		return (U08)(assign - MnOS1_ASSIGN_CH2_LIGHT);
+	return assign;
+}
+
 static const U32 lMnOut_ExtEnableAddr[MnOS4_EXT_INPUT_NUM] = {
 	_mEXT_IN1_ENABLE,
 	_mEXT_IN2_ENABLE,
@@ -69,6 +98,11 @@ static const U32 lMnOut_ExtTargetAddr[MnOS4_EXT_INPUT_NUM] = {
 	_mEXT_IN2_TARGET,
 };
 
+static const U32 lMnOut_ExtOutEnableAddr[MnOS4_EXT_OUTPUT_NUM] = {
+	_mEXT_OUT1_ENABLE,
+	_mEXT_OUT2_ENABLE,
+};
+
 static U08 MnOUT_ExtGetIdx(U08 iIt, U08 *pExt)
 {
 	switch(iIt)
@@ -77,6 +111,16 @@ static U08 MnOUT_ExtGetIdx(U08 iIt, U08 *pExt)
 		case MnOS4_OPT_EXT1_TARGET:	*pExt = MnOS4_EXT_INPUT_1;	return TRUE;
 		case MnOS4_OPT_EXT2:
 		case MnOS4_OPT_EXT2_TARGET:	*pExt = MnOS4_EXT_INPUT_2;	return TRUE;
+		default:					return FALSE;
+	}
+}
+
+static U08 MnOUT_ExtOutGetIdx(U08 iIt, U08 *pOut)
+{
+	switch(iIt)
+	{
+		case MnOS4_OPT_EXT_OUT1:	*pOut = MnOS4_EXT_OUTPUT_1;	return TRUE;
+		case MnOS4_OPT_EXT_OUT2:	*pOut = MnOS4_EXT_OUTPUT_2;	return TRUE;
 		default:					return FALSE;
 	}
 }
@@ -185,6 +229,10 @@ S32 MnOUT_ErrPrGet_Value(U08 iIt)
 S32 MnOUT_ExtPrGet_Value(U08 iIt)
 {
 	U08 ext;
+	U08 out;
+
+	if(MnOUT_ExtOutGetIdx(iIt, &out))
+		return (lMnOut.mExtPr.out_enable[out] == MnOS4_ENABLE_ON) ? MnOS4_VALUE_ON : MnOS4_VALUE_OFF;
 
 	if(MnOUT_ExtGetIdx(iIt, &ext) == FALSE)	return MENU_VAL_INVALID;
 
@@ -357,6 +405,15 @@ void MnOUT_ErrPrSet_Value(U08 iIt, S32 val)
 void MnOUT_ExtPrSet_Value(U08 iIt, S32 val)
 {
 	U08 ext;
+	U08 out;
+
+	if(MnOUT_ExtOutGetIdx(iIt, &out))
+	{
+		if((val < MnOS4_VALUE_MIN) || (val > MnOS4_VALUE_MAX))	return;
+		lMnOut.mExtPr.out_enable[out] = (U08)val;
+		MRM_WrByte(lMnOut_ExtOutEnableAddr[out], lMnOut.mExtPr.out_enable[out]);
+		return;
+	}
 
 	if(MnOUT_ExtGetIdx(iIt, &ext) == FALSE)	return;
 
@@ -383,6 +440,7 @@ void MnOUT_PrRst_Factory(void)
 {
 	U08 rly;
 	U08 ext;
+	U08 out;
 	// Sub-Section #0 (Current)
 	MRM_WrByte(_mCH1_CURRENT_ASSIGN,     MnOS0_ASSGIN_DEF);
 	MRM_WrByte(_mCH2_CURRENT_ASSIGN,     MnOS0_ASSGIN_DEF);
@@ -398,9 +456,9 @@ void MnOUT_PrRst_Factory(void)
 	// Sub-Section #1 (Relay)
 	for(rly=0; rly<MnOUT_RLY_NUM; rly++)
 	{
-		MRM_WrByte(lMnOut_RlyAssignAddr[rly], MnOS1_ASSIGN_DEF);
-		MRM_WrWord(lMnOut_RlyActAddr[rly],    MnOS1_ACT_DEF);
-		MRM_WrWord(lMnOut_RlyStopAddr[rly],   MnOS1_STOP_DEF);
+		MRM_WrByte(lMnOut_RlyAssignAddr[rly], MnOUT_RlyAssignFit(lMnOut_RlyAssignDef[rly]));
+		MRM_WrWord(lMnOut_RlyActAddr[rly],    lMnOut_RlyActDef[rly]);
+		MRM_WrWord(lMnOut_RlyStopAddr[rly],   lMnOut_RlyStopDef[rly]);
 	}
 	// Sub-Section #2 (PCD)
 	MRM_WrByte(_mCLEAN_MODE,     MnOS2_MODE_DEF);
@@ -414,6 +472,10 @@ void MnOUT_PrRst_Factory(void)
 	{
 		MRM_WrByte(lMnOut_ExtEnableAddr[ext], MnOS4_ENABLE_DEF);
 		MRM_WrByte(lMnOut_ExtTargetAddr[ext], MnOS4_TARGET_DEF);
+	}
+	for(out=0; out<MnOS4_EXT_OUTPUT_NUM; out++)
+	{
+		MRM_WrByte(lMnOut_ExtOutEnableAddr[out], MnOS4_ENABLE_DEF);
 	}
 }
 
@@ -434,6 +496,7 @@ void MnOUT_PrInitMain(void)
 {
 	U08 rly;
 	U08 ext;
+	U08 out;
 
 	// Read Parameters
 	// Sub-Section #0 (Current)
@@ -467,6 +530,10 @@ void MnOUT_PrInitMain(void)
 		lMnOut.mExtPr.enable[ext] = MRM_RdByte(lMnOut_ExtEnableAddr[ext]);
 		lMnOut.mExtPr.target[ext] = MRM_RdByte(lMnOut_ExtTargetAddr[ext]);
 	}
+	for(out=0; out<MnOS4_EXT_OUTPUT_NUM; out++)
+	{
+		lMnOut.mExtPr.out_enable[out] = MRM_RdByte(lMnOut_ExtOutEnableAddr[out]);
+	}
 
 	// Check Parameters
 	// Sub-Section #0 (Current)
@@ -484,9 +551,10 @@ void MnOUT_PrInitMain(void)
 	// Sub-Section #1 (Relay)
 	for(rly=0; rly<MnOUT_RLY_NUM; rly++)
 	{
-		if(lMnOut.mRlyPr.assign[rly] > MnOS1_ASSIGN_MAX)	lMnOut.mRlyPr.assign[rly] = MnOS1_ASSIGN_DEF;
-		if(lMnOut.mRlyPr.act[rly]    > MnOS1_ACT_MAX)	lMnOut.mRlyPr.act[rly]    = MnOS1_ACT_DEF;
-		if(lMnOut.mRlyPr.stop[rly]   > MnOS1_STOP_MAX)	lMnOut.mRlyPr.stop[rly]   = MnOS1_STOP_DEF;
+		if(lMnOut.mRlyPr.assign[rly] > MnOS1_ASSIGN_MAX)	lMnOut.mRlyPr.assign[rly] = lMnOut_RlyAssignDef[rly];
+		lMnOut.mRlyPr.assign[rly] = MnOUT_RlyAssignFit(lMnOut.mRlyPr.assign[rly]);
+		if(lMnOut.mRlyPr.act[rly]    > MnOS1_ACT_MAX)	lMnOut.mRlyPr.act[rly]    = lMnOut_RlyActDef[rly];
+		if(lMnOut.mRlyPr.stop[rly]   > MnOS1_STOP_MAX)	lMnOut.mRlyPr.stop[rly]   = lMnOut_RlyStopDef[rly];
 	}
 	// Sub-Section #2 (PCD)
 	if(lMnOut.mPcdPr.mode > MnOS2_MODE_MAX)					lMnOut.mPcdPr.mode 	= MnOS2_MODE_DEF;	
@@ -500,6 +568,10 @@ void MnOUT_PrInitMain(void)
 	{
 		if(lMnOut.mExtPr.enable[ext] > MnOS4_ENABLE_MAX)	lMnOut.mExtPr.enable[ext] = MnOS4_ENABLE_DEF;
 		if(lMnOut.mExtPr.target[ext] > MnOS4_TARGET_MAX)	lMnOut.mExtPr.target[ext] = MnOS4_TARGET_DEF;
+	}
+	for(out=0; out<MnOS4_EXT_OUTPUT_NUM; out++)
+	{
+		if(lMnOut.mExtPr.out_enable[out] > MnOS4_ENABLE_MAX)	lMnOut.mExtPr.out_enable[out] = MnOS4_ENABLE_DEF;
 	}
 
 }
