@@ -16,6 +16,7 @@
 // bsp
 #include "bsp_adc.h"
 #include "bsp_sdram.h"
+#include "bsp_demux.h"
 // app
 #include "app_status.h"
 #include "app_schd1sec.h"
@@ -65,6 +66,27 @@ U16 *SDRAM_aEco_prof_S3 = (U16 *)0xD0600000;
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
 //------------------------------------------------------------------------------------------------------------------------------
+
+static U08 MsCAL_ExtInputActive(U08 ch, U08 *pOutMode)
+{
+	static const U08 ext_en_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT1, MnOS4_OPT_EXT2};
+	static const U08 ext_target_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT1_TARGET, MnOS4_OPT_EXT2_TARGET};
+	static const U08 ext_out_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT_OUT1, MnOS4_OPT_EXT_OUT2};
+	static const U08 ext_dmx_it[MnOS4_EXT_INPUT_NUM] = {DMX_INP_EXT_IN_1, DMX_INP_EXT_IN_2};
+	U08 ext;
+
+	for(ext=0; ext<MnOS4_EXT_INPUT_NUM; ext++)
+	{
+		if(MnOUT_ExtPrGet_Value(ext_en_it[ext]) != MnOS4_VALUE_ON)	continue;
+		if(MnOUT_ExtPrGet_Value(ext_target_it[ext]) != ch)			continue;
+		if(DMX_GetIo(ext_dmx_it[ext]) == FALSE)						continue;
+
+		*pOutMode = (U08)MnOUT_ExtPrGet_Value(ext_out_it[ext]);
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 
 void MsCAL_InitVari(void)
@@ -1246,6 +1268,9 @@ void MsCAL_ProcDamp(U08 iCh, U16 idx)
 	S16 dist[MsCAL_THR_TYPE_NUM];
 	U16 empty = MnMSR_BaseGet_Ch_Value(iCh, MnMS0_OPT_SINGLE_EMPTY);
 	S16 offs = MnMSR_CalGet_Ch_Value(iCh,MnMS1_OPT_SINGLE_OFFSET);
+	U08 oper = MnMSR_BaseGet_Ch_Value(iCh, MnMS0_OPT_SINGLE_OPERATION);
+	U08 ext_out_mode = MnOS4_OUT_HOLD;
+	U16 force_val = 0;
 
 	if((ScECH_GetLayer() == SCRN_L2_VALU) || (ScCLB_GetLayer() == SCRN_L2_VALU) || (MENU_GetLayer() >= MENU_L3_VALUE)) 
 		return;
@@ -1274,7 +1299,7 @@ void MsCAL_ProcDamp(U08 iCh, U16 idx)
 	// Offset
 	for(j=0; j<MsCAL_THR_TYPE_NUM; j++)
 	{
-		switch(MnMSR_BaseGet_Ch_Value(iCh, MnMS0_OPT_SINGLE_OPERATION))
+		switch(oper)
 		{
 			case MnMS0_OPERATION_DISTANCE:	dist[j] = sum[j]/idx + offs;  	break;
 			case MnMS0_OPERATION_SLUDGE:	dist[j] = sum[j]/idx - offs;	if(dist[j]<= 0) dist[j] =0;  break;
@@ -1285,6 +1310,28 @@ void MsCAL_ProcDamp(U08 iCh, U16 idx)
 
 	for(j=0; j<MsCAL_THR_TYPE_NUM; j++)
 	{
+		if(MsCAL_ExtInputActive(iCh, &ext_out_mode) == TRUE)
+		{
+			switch(ext_out_mode)
+			{
+				case MnOS4_OUT_HOLD:	continue;
+				case MnOS4_OUT_4MA:		force_val = MnOUT_CurPrGet_CH_Value(iCh, MnOS0_OPT_SINGLE_SET_04mA);	break;
+				case MnOS4_OUT_20MA:	force_val = MnOUT_CurPrGet_CH_Value(iCh, MnOS0_OPT_SINGLE_SET_20mA);	break;
+				default:				force_val = 0;	break;
+			}
+
+			if(force_val > empty)	force_val = empty;
+
+			switch(oper)
+			{
+				case MnMS0_OPERATION_SLUDGE:	lMsCal.rslt_sldg[iCh][j] = force_val;	lMsCal.rslt_dist[iCh][j] = empty - force_val;	break;
+				case MnMS0_OPERATION_DISTANCE:
+				default:						lMsCal.rslt_dist[iCh][j] = force_val;	lMsCal.rslt_sldg[iCh][j] = empty - force_val;	break;
+			}
+
+			continue;
+		}
+
 		lMsCal.rslt_dist[iCh][j] = dist[j];
 
 		// Final Result

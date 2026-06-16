@@ -249,9 +249,9 @@ void MnL3Itr_Sc1Outp(U08 iSb, U08 iIt)
 			switch(iIt)
 			{
 				case MnOS4_OPT_EXT1:
-				case MnOS4_OPT_EXT2:
+				case MnOS4_OPT_EXT2:			lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
 				case MnOS4_OPT_EXT_OUT1:
-				case MnOS4_OPT_EXT_OUT2:		lMnLy3.min = MnOS4_VALUE_MIN;	lMnLy3.max = MnOS4_VALUE_MAX;	break;
+				case MnOS4_OPT_EXT_OUT2:		lMnLy3.min = MnOS4_OUT_MIN;	lMnLy3.max = MnOS4_OUT_MAX;	break;
 				case MnOS4_OPT_EXT1_TARGET:
 				case MnOS4_OPT_EXT2_TARGET:	lMnLy3.min = MnOS4_TARGET_MIN;	lMnLy3.max = MnOS4_TARGET_MAX;	break;
 				default:				lMnLy3.val = MENU_VAL_INVALID;	break;

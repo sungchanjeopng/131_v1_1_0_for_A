@@ -1274,12 +1274,20 @@ void DpOutExt_GetValueStr(U08 iIt, S32 val, I08 *pStr)
 	{
 		case MnOS4_OPT_EXT1:
 		case MnOS4_OPT_EXT2:
-		case MnOS4_OPT_EXT_OUT1:
-		case MnOS4_OPT_EXT_OUT2:
 			switch(val)
 			{
 				case MnOS4_VALUE_OFF:	_SPRINTF(pStr, _sOFF);	break;
 				case MnOS4_VALUE_ON:	_SPRINTF(pStr, _sON);	break;
+				default:				_SPRINTF(pStr, _sNG);	break;
+			}
+			break;
+		case MnOS4_OPT_EXT_OUT1:
+		case MnOS4_OPT_EXT_OUT2:
+			switch(val)
+			{
+				case MnOS4_OUT_HOLD:	_SPRINTF(pStr, _sHold);	break;
+				case MnOS4_OUT_4MA:		_SPRINTF(pStr, "4mA");	break;
+				case MnOS4_OUT_20MA:	_SPRINTF(pStr, "20mA");	break;
 				default:				_SPRINTF(pStr, _sNG);	break;
 			}
 			break;

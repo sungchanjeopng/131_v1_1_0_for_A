@@ -45,6 +45,34 @@
 //------------------------------------------------------------------------------------------------------------------------------
 DpSYS_LS lDpSys;
 
+#define DpSYS_KOR_F			(38)
+#define DpSYS_KOR_W			(55)
+#define DpSYS_KOR_PUM		(189)
+#define DpSYS_KOR_WE		(114)
+#define DpSYS_KOR_EO		(100)
+#define DpSYS_KOR_UP		(190)
+#define DpSYS_KOR_ASC_LP	(191)
+#define DpSYS_KOR_ASC_RP	(192)
+#define DpSYS_KOR_ASC_U		(193)
+#define DpSYS_KOR_ASC_S		(194)
+#define DpSYS_KOR_ASC_B		(195)
+#define DpSYS_KOR_SPACE		(173)
+
+static void DpSYS_CopyKorText(I08 *pDst, const U08 *pSrc)
+{
+	U08 i;
+
+	for(i=0; i<16; i++)	pDst[i] = 0;
+	for(i=0; (i<15) && (pSrc[i] != 0); i++)	pDst[i] = (I08)pSrc[i];
+}
+
+static void DpSYS_SetKorFwUpdateLabel(I08* pDst)
+{
+	static const U08 sFwUpdate[] = {DpSYS_KOR_PUM, DpSYS_KOR_WE, DpSYS_KOR_EO, DpSYS_KOR_SPACE, DpSYS_KOR_UP, 41, 120, 156, DpSYS_KOR_ASC_LP, DpSYS_KOR_ASC_U, DpSYS_KOR_ASC_S, DpSYS_KOR_ASC_B, DpSYS_KOR_ASC_RP, 0};
+
+	DpSYS_CopyKorText(pDst, sFwUpdate);
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions - L2 - I2 (Factory Reset)
@@ -1018,7 +1046,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_CH2_SITE_NAME],    gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_FACTORY_RESET);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FTR_RST], gDpStr.Text_list);		
-				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_FW_UPDATE_USB], "Firmware Update (USB)");
+				DpSYS_SetKorFwUpdateLabel(lDpSys.sIt0[MnSYS_OPT_FW_UPDATE_USB]);
 				DpSTR_GuiList(TEXT_LIST_TIMER);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],    gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_RESET);
@@ -1063,7 +1091,7 @@ void DpSYS_InitVari(void)
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_SITE_NAME],	  gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_FACTORY_RESET);
 				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FTR_RST], gDpStr.Text_list); 	
-				_SPRINTF(lDpSys.sIt0[MnSYS_OPT_SINGLE_FW_UPDATE_USB], "Firmware Update (USB)");
+				DpSYS_SetKorFwUpdateLabel(lDpSys.sIt0[MnSYS_OPT_SINGLE_FW_UPDATE_USB]);
 				DpSTR_GuiList(TEXT_LIST_TIMER);
 				_SPRINTF(lDpSys.sIt1[MnSYS_OPT_ALARM_TIMER],	gDpStr.Text_list);
 				DpSTR_GuiList(TEXT_LIST_RESET);

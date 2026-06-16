@@ -715,7 +715,7 @@ void DpSTR_GuiList(U08 iIt)
 			gDpStr.Text_list[0] = 73;	gDpStr.Text_list[1] = 130;  gDpStr.Text_list[2] = 0; 
 			break;		
 		case TEXT_LIST_OUTPUT:
-			gDpStr.Text_list[0] = 144;	gDpStr.Text_list[1] = 51;	gDpStr.Text_list[2] = 0; 
+			gDpStr.Text_list[0] = 122;	gDpStr.Text_list[1] = 144;	gDpStr.Text_list[2] = 51;	gDpStr.Text_list[3] = 0; 
 			break;	
 		case TEXT_LIST_CURRENT_MENU:
 			gDpStr.Text_list[0] = 127;	gDpStr.Text_list[1] = 54;	gDpStr.Text_list[2] = 0; 

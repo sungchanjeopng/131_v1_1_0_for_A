@@ -56,6 +56,27 @@ OuCUR_LS lOuCur;
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
 //------------------------------------------------------------------------------------------------------------------------------
+static U08 OuCur_ExtInputActive(U08 ch, U08 *pOutMode)
+{
+	static const U08 ext_en_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT1, MnOS4_OPT_EXT2};
+	static const U08 ext_target_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT1_TARGET, MnOS4_OPT_EXT2_TARGET};
+	static const U08 ext_out_it[MnOS4_EXT_INPUT_NUM] = {MnOS4_OPT_EXT_OUT1, MnOS4_OPT_EXT_OUT2};
+	static const U08 ext_dmx_it[MnOS4_EXT_INPUT_NUM] = {DMX_INP_EXT_IN_1, DMX_INP_EXT_IN_2};
+	U08 ext;
+
+	for(ext=0; ext<MnOS4_EXT_INPUT_NUM; ext++)
+	{
+		if(MnOUT_ExtPrGet_Value(ext_en_it[ext]) != MnOS4_VALUE_ON)	continue;
+		if(MnOUT_ExtPrGet_Value(ext_target_it[ext]) != ch)			continue;
+		if(DMX_GetIo(ext_dmx_it[ext]) == FALSE)						continue;
+
+		*pOutMode = (U08)MnOUT_ExtPrGet_Value(ext_out_it[ext]);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 void OuCur_CalcMA(U08 ch, U16 msr)
 {
 	F32 dg_c;
@@ -152,6 +173,7 @@ void OuCur_ProcDual(U08 ch)
 	U16 err_outp = MnOUT_ErrPrGet_Value(MnOS3_OPT_ERR_OUTP);
 
 	U08 msr_ch = ch;
+	U08 ext_out_mode = MnOS4_OUT_HOLD;
 
 
 	if((MnEGN_PrGet_Item(MnEGN_OPT_MSR)==MnEGN_MSR_ON))
@@ -203,7 +225,18 @@ void OuCur_ProcDual(U08 ch)
 			case MnOS0_ASSIGN_HEAVY:			lOuCur.out_valu[ch] = DaSav_GetTrendValue(ch);		break;
 		}
 	}
+
 #endif
+	if(OuCur_ExtInputActive(ch, &ext_out_mode) == TRUE)
+	{
+		switch(ext_out_mode)
+		{
+			case MnOS4_OUT_HOLD:	return;
+			case MnOS4_OUT_4MA:		lOuCur.out_valu[ch] = lOuCur.set_04mA[ch];	break;
+			case MnOS4_OUT_20MA:	lOuCur.out_valu[ch] = lOuCur.set_20mA[ch];	break;
+			default:				break;
+		}
+	}
 	if(lOuCur.out_valu[ch]>=lOuCur.set_20mA[ch]) 	lOuCur.out_valu[ch]=lOuCur.set_20mA[ch];
 
 	lOuCur.out_dac[ch] = MTH_ConvAtoB(lOuCur.out_valu[ch], lOuCur.set_04mA[ch], lOuCur.set_20mA[ch], lOuCur.dac_04mA[ch], lOuCur.dac_20mA[ch]);

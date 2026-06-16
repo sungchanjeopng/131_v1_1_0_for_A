@@ -313,8 +313,8 @@ typedef struct {
 //------------------------------------------------------------------------------------------------------------------------------
 //  Macros - Menu (Output)
 //------------------------------------------------------------------------------------------------------------------------------
-#define _sOUTP			"OUTPUT"
-#define _sOutp			"Output"
+#define _sOUTP			"INPUT/OUTPUT"
+#define _sOutp			"Input/Output"
 // Section
 #define _sRelay			"Relay"
 #define _sPCD			"Clean"

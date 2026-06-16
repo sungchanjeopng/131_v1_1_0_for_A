@@ -292,6 +292,18 @@ enum {
 #define MnOS4_VALUE_MAX		(MnOS4_VALUE_NUM-1)
 #define MnOS4_VALUE_DEF		(MnOS4_VALUE_OFF)
 
+enum {
+	MnOS4_OUT_HOLD = 0,
+	MnOS4_OUT_4MA,
+	MnOS4_OUT_20MA,
+	// Number Max
+	MnOS4_OUT_NUM,
+};
+
+#define MnOS4_OUT_MIN		(MnOS4_OUT_HOLD)
+#define MnOS4_OUT_MAX		(MnOS4_OUT_NUM-1)
+#define MnOS4_OUT_DEF		(MnOS4_OUT_HOLD)
+
 #if 0
 
 // Item List - Sub-Section #1 (Relay)
@@ -425,7 +437,7 @@ typedef struct {
 typedef struct {
 	U08 enable[MnOS4_EXT_INPUT_NUM];	// OFF / ON
 	U08 target[MnOS4_EXT_INPUT_NUM];	// CH1 / CH2
-	U08 out_enable[MnOS4_EXT_OUTPUT_NUM];	// OFF / ON
+	U08 out_enable[MnOS4_EXT_OUTPUT_NUM];	// HOLD / 4mA / 20mA
 } MnOUT_ext;
 
 // Parameter - Sub-Section

@@ -31,7 +31,25 @@
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local variables
 //------------------------------------------------------------------------------------------------------------------------------
+#define DpPOP_KOR_USB_U		(53)
+#define DpPOP_KOR_USB_S		(51)
+#define DpPOP_KOR_USB_B		(34)
+#define DpPOP_KOR_F			(38)
+#define DpPOP_KOR_W			(55)
+#define DpPOP_KOR_PUM		(189)
+#define DpPOP_KOR_WE		(114)
+#define DpPOP_KOR_EO		(100)
+#define DpPOP_KOR_UP		(190)
+#define DpPOP_KOR_ASC_LP	(191)
+#define DpPOP_KOR_ASC_RP	(192)
+#define DpPOP_KOR_ASC_U	(193)
+#define DpPOP_KOR_ASC_S	(194)
+#define DpPOP_KOR_ASC_B	(195)
+#define DpPOP_KOR_SPACE		(173)
 
+static const I08 sPopKorUsbDownload[] = {35, 113, 52, 45, DpPOP_KOR_SPACE, DpPOP_KOR_ASC_LP, DpPOP_KOR_ASC_U, DpPOP_KOR_ASC_S, DpPOP_KOR_ASC_B, DpPOP_KOR_ASC_RP, 0};
+static const I08 sPopKorDownload[] = {35, 113, 52, 45, 0};
+static const I08 sPopKorFwUpdate[] = {DpPOP_KOR_PUM, DpPOP_KOR_WE, DpPOP_KOR_EO, DpPOP_KOR_SPACE, DpPOP_KOR_UP, 41, 120, 156, DpPOP_KOR_ASC_LP, DpPOP_KOR_ASC_U, DpPOP_KOR_ASC_S, DpPOP_KOR_ASC_B, DpPOP_KOR_ASC_RP, 0};
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions
@@ -178,9 +196,14 @@ static void DpPOP_ResetUiLayer(void)	{ }
 
 void DpPOP_DrwDLoadStart(void)
 {
+	U16 lang = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0,   DpPOP_DL_WD, 4,              _cPOP_BG_UPP, DpFIG_FILL);
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0+4, DpPOP_DL_WD, DpPOP_DL_HT-4,  _cPOP_BG_WND, DpFIG_FILL);
-	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Data Download");
+	if(lang == MnSYS_LANG_KOR)
+		DpSTR_GuiLeft_KOR(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsBKOR, (I08*)sPopKorDownload);
+	else
+		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Data Download");
 	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 75, _cPOP_ST_VAL_IDL, _cPOP_BG_WND, _fE17HsB, (I08*)"Downloading...");
 	DpFIG_DrwRect(DpPOP_DL_BAR_X, DpPOP_DL_BAR_Y, DpPOP_DL_BAR_W, DpPOP_DL_BAR_H, _cPOP_BG_LN_0, DpFIG_FILL);
 	LCD_FlipFrame();
@@ -217,9 +240,14 @@ void DpPOP_DrwDLoadEnd(void)
 
 void DpPOP_DrwUsbExportMsg(const I08 *line1, const I08 *line2)
 {
+	U16 lang = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0,   DpPOP_DL_WD, 4,              _cPOP_BG_UPP, DpFIG_FILL);
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0+4, DpPOP_DL_WD, DpPOP_DL_HT-4,  _cPOP_BG_WND, DpFIG_FILL);
-	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Export (USB)");
+	if(lang == MnSYS_LANG_KOR)
+		DpSTR_GuiLeft_KOR(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsBKOR, (I08*)sPopKorUsbDownload);
+	else
+		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Export (USB)");
 	if(line1 != 0)
 		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 82, _cPOP_ST_VAL_IDL, _cPOP_BG_WND, _fE17HsB, (I08*)line1);
 	if(line2 != 0)
@@ -240,9 +268,14 @@ static void OtaPOP_ClearLine(U16 y0, U16 h)
 
 void DpPOP_DrwOtaStart(void)
 {
+	U16 lang = MnSYS_PrGetBase_Item(MnSYS_OPT_LANG);
+
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0,   DpPOP_DL_WD, 4,              _cPOP_BG_UPP, DpFIG_FILL);
 	DpFIG_DrwRect(DpPOP_DL_X0, DpPOP_DL_Y0+4, DpPOP_DL_WD, DpPOP_DL_HT-4,  _cPOP_BG_WND, DpFIG_FILL);
-	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Firmware Update");
+	if(lang == MnSYS_LANG_KOR)
+		DpSTR_GuiLeft_KOR(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsBKOR, (I08*)sPopKorFwUpdate);
+	else
+		DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_DL_Y0 + 30, _cPOP_ST_TIT, _cPOP_BG_WND, _fE22HsB, (I08*)"Firmware Update");
 	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_OTA_RX_Y,   _cPOP_ST_VAL_IDL, _cPOP_BG_WND, _fE17HsB, (I08*)"Receiving data...");
 	DpSTR_GuiLeft(DpPOP_DL_X0 + DpPOP_DL_PAD, DpPOP_OTA_STS_Y,  _cPOP_ST_VAL_SEL, _cPOP_BG_WND, _fE17HsB, (I08*)"0 bytes");
 	DpFIG_DrwRect(DpPOP_DL_BAR_X, DpPOP_DL_BAR_Y, DpPOP_DL_BAR_W, DpPOP_DL_BAR_H, _cPOP_BG_LN_0, DpFIG_FILL);
@@ -357,7 +390,10 @@ void DpPOP_DrwFileList(const I08 *curDir, const OTA_USB_FILE *list, U08 count,
 
 	// native top status bar (gradient), title replaced by this screen's name
 	DpTTB_UdtIntro(TEXT_LIST_MENU, 70, _cTTB_ST_TITLE);
-	DpSTR_TitleBar((I08*)"Firmware Update (USB)", 70, _cTTB_ST_TITLE);
+	if(MnSYS_PrGetBase_Item(MnSYS_OPT_LANG) == MnSYS_LANG_KOR)
+		DpSTR_TitleBar_KOR((I08*)sPopKorFwUpdate, 70, _cTTB_ST_TITLE);
+	else
+		DpSTR_TitleBar((I08*)"Firmware Update (USB)", 70, _cTTB_ST_TITLE);
 	DpTTB_RunIconTgl();		// draw the top-right status icons (USB / BLE / alarm / measure)
 
 	// content window background (between top bar and the button-bar line @ y390)

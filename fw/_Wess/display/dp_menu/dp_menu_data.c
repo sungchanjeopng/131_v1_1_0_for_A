@@ -47,6 +47,37 @@
 //------------------------------------------------------------------------------------------------------------------------------
 DpDAT_LS lDpDat;
 
+#define DpDAT_KOR_USB_U		(53)
+#define DpDAT_KOR_USB_S		(51)
+#define DpDAT_KOR_USB_B		(34)
+#define DpDAT_KOR_ASC_LP	(191)
+#define DpDAT_KOR_ASC_RP	(192)
+#define DpDAT_KOR_ASC_U		(193)
+#define DpDAT_KOR_ASC_S		(194)
+#define DpDAT_KOR_ASC_B		(195)
+#define DpDAT_KOR_ASC_R		(196)
+#define DpDAT_KOR_RS_4		(5)
+#define DpDAT_KOR_RS_8		(9)
+#define DpDAT_KOR_RS_5		(6)
+#define DpDAT_KOR_SPACE		(173)
+
+static void DpDAT_CopyKorText(I08 *pDst, const U08 *pSrc)
+{
+	U08 i;
+
+	for(i=0; i<16; i++)	pDst[i] = 0;
+	for(i=0; (i<15) && (pSrc[i] != 0); i++)	pDst[i] = (I08)pSrc[i];
+}
+
+static void DpDAT_SetKorExportLabels(void)
+{
+	static const U08 sDownloadUsb[] = {35, 113, 52, 45, DpDAT_KOR_SPACE, DpDAT_KOR_ASC_LP, DpDAT_KOR_ASC_U, DpDAT_KOR_ASC_S, DpDAT_KOR_ASC_B, DpDAT_KOR_ASC_RP, 0};
+	static const U08 sDownloadRs[] = {35, 113, 52, 45, DpDAT_KOR_SPACE, DpDAT_KOR_ASC_LP, DpDAT_KOR_ASC_R, DpDAT_KOR_ASC_S, DpDAT_KOR_RS_4, DpDAT_KOR_RS_8, DpDAT_KOR_RS_5, DpDAT_KOR_ASC_RP, 0};
+
+	DpDAT_CopyKorText(lDpDat.sIt0[MnDS0_OPT_EXPORT_USB], sDownloadUsb);
+	DpDAT_CopyKorText(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], sDownloadRs);
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------------
 //  Local Funtions - Common
@@ -799,8 +830,7 @@ void DpDAT_InitVari(void)
 			// Item (S0 - Save)
 			DpSTR_GuiList(TEXT_LIST_INTV);
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_INTERVAL], 	 	gDpStr.Text_list);
-			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_EXPORT_USB], 	"Export (USB)");
-			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DOWNLOAD], 	 	"Export (RS485)");
+			DpDAT_SetKorExportLabels();
 			DpSTR_GuiList(TEXT_LIST_DELETE);
 			_SPRINTF(lDpDat.sIt0[MnDS0_OPT_DELETE],  	 	gDpStr.Text_list);
 			DpSTR_GuiList(TEXT_LIST_DISPLAY_TERM);

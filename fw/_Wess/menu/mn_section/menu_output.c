@@ -232,7 +232,7 @@ S32 MnOUT_ExtPrGet_Value(U08 iIt)
 	U08 out;
 
 	if(MnOUT_ExtOutGetIdx(iIt, &out))
-		return (lMnOut.mExtPr.out_enable[out] == MnOS4_ENABLE_ON) ? MnOS4_VALUE_ON : MnOS4_VALUE_OFF;
+		return lMnOut.mExtPr.out_enable[out];
 
 	if(MnOUT_ExtGetIdx(iIt, &ext) == FALSE)	return MENU_VAL_INVALID;
 
@@ -409,7 +409,7 @@ void MnOUT_ExtPrSet_Value(U08 iIt, S32 val)
 
 	if(MnOUT_ExtOutGetIdx(iIt, &out))
 	{
-		if((val < MnOS4_VALUE_MIN) || (val > MnOS4_VALUE_MAX))	return;
+		if((val < MnOS4_OUT_MIN) || (val > MnOS4_OUT_MAX))	return;
 		lMnOut.mExtPr.out_enable[out] = (U08)val;
 		MRM_WrByte(lMnOut_ExtOutEnableAddr[out], lMnOut.mExtPr.out_enable[out]);
 		return;
@@ -475,7 +475,7 @@ void MnOUT_PrRst_Factory(void)
 	}
 	for(out=0; out<MnOS4_EXT_OUTPUT_NUM; out++)
 	{
-		MRM_WrByte(lMnOut_ExtOutEnableAddr[out], MnOS4_ENABLE_DEF);
+		MRM_WrByte(lMnOut_ExtOutEnableAddr[out], MnOS4_OUT_DEF);
 	}
 }
 
@@ -571,7 +571,7 @@ void MnOUT_PrInitMain(void)
 	}
 	for(out=0; out<MnOS4_EXT_OUTPUT_NUM; out++)
 	{
-		if(lMnOut.mExtPr.out_enable[out] > MnOS4_ENABLE_MAX)	lMnOut.mExtPr.out_enable[out] = MnOS4_ENABLE_DEF;
+		if(lMnOut.mExtPr.out_enable[out] > MnOS4_OUT_MAX)	lMnOut.mExtPr.out_enable[out] = MnOS4_OUT_DEF;
 	}
 
 }
